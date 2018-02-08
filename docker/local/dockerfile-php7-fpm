@@ -1,0 +1,29 @@
+# our base image
+FROM php:7.1-fpm
+
+ENV PHP_REDIS_VERSION 3.1.4
+
+#install zip extension for composer
+RUN apt-get update && apt-get install -y \
+    zip \
+    && docker-php-ext-install \
+        gmp \
+        pcntl \
+    && docker-php-ext-configure pcntl --enable-pcntl \
+    && git clone --branch ${PHP_REDIS_VERSION} https://github.com/phpredis/phpredis /tmp/phpredis \
+        && cd /tmp/phpredis \
+        && phpize  \
+        && ./configure  \
+        && make  \
+        && make install \
+        && make test
+
+#install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Copy configuration
+COPY /var/www/golos-event-listener/docker/local/php/extensions/redis.ini /usr/local/etc/php/conf.d/
+
+RUN chown -R www-data:www-data /var/www
+
+WORKDIR  /var/www/golos-event-listener
