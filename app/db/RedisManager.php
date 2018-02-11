@@ -9,9 +9,15 @@ use GolosEventListener\app\handlers\HandlerInterface;
 
 class RedisManager implements DBManagerInterface
 {
+    protected $connect;
+
     public function connect()
     {
-        // TODO: Implement connect() method.
+        if ($this->connect === null || $this->connect->ping() !== '+PONG') {
+            $this->connect = new \Redis();
+            $this->connect->pconnect('redis', 6379);
+            $this->connect->auth(getenv('REDIS_PSWD'));
+        }
     }
 
     /**
@@ -46,6 +52,8 @@ class RedisManager implements DBManagerInterface
      */
     public function clearListenersList()
     {
+        $this->connect();
+        $this->connect();
         // TODO: Implement clearListenersList() method.
     }
 
