@@ -1,7 +1,6 @@
 <?php
 
 
-
 namespace GolosEventListener\app\db;
 
 
@@ -18,6 +17,8 @@ class RedisManager implements DBManagerInterface
             $this->connect->pconnect('redis', 6379);
             $this->connect->auth(getenv('REDIS_PSWD'));
         }
+
+        return $this->connect;
     }
 
     /**
@@ -30,19 +31,15 @@ class RedisManager implements DBManagerInterface
      */
     public function addListener($event, HandlerInterface $handler)
     {
-        // TODO: Implement addListener() method.
-    }
+        $this->connect();
+        $id = $this->connect->incr('app:listeners:last_id');
 
-    /**
-     * remove event from listeners list
-     *
-     * @param string $event
-     *
-     * @return void
-     */
-    public function removeListener($event)
-    {
-        // TODO: Implement removeListener() method.
+        return $this->connect->mset(
+            [
+                "app:listeners:{$id}:event"   => $event,
+                "app:listeners:{$id}:handler" => get_class($handler)
+            ]
+        );
     }
 
     /**
@@ -52,9 +49,8 @@ class RedisManager implements DBManagerInterface
      */
     public function clearListenersList()
     {
-        $this->connect();
-        $this->connect();
-        // TODO: Implement clearListenersList() method.
+        $this->connect()->select(0);
+        return $this->connect->del($this->connect->keys('app:listeners:*'));
     }
 
 
