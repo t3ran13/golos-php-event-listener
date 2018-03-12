@@ -16,10 +16,6 @@ class MainProcess extends ProcessAbstract
      */
     public $appConfig;
     /**
-     * @var null|DBManagerInterface
-     */
-    public $db;
-    /**
      * @var ProcessInterface[]
      */
     public $processesList = [];
@@ -27,14 +23,16 @@ class MainProcess extends ProcessAbstract
     /**
      * MainProcess constructor.
      *
-     * @param AppConfig $appConfig
+     * @param AppConfig          $appConfig
+     * @param DBManagerInterface $DBManager
      */
     public function __construct(AppConfig $appConfig, DBManagerInterface $DBManager)
     {
         $this->appConfig = $appConfig;
-        $this->db = $DBManager;
+        $this->setDBManager($DBManager);
+
         $this->processesList = [
-            new BlockchainExplorerProcess()
+            new BlockchainExplorerProcess($DBManager)
         ];
     }
 
@@ -44,9 +42,9 @@ class MainProcess extends ProcessAbstract
     public function init()
     {
         $listeners = $this->appConfig->getListenersList();
-        $this->db->clearListenersList();
+        $this->getDBManager()->listenersListClear();
         foreach ($listeners as $event => $handler) {
-            $this->db->addListener($event, $handler);
+            $this->getDBManager()->listenerAdd($event, $handler);
         }
     }
 
@@ -66,8 +64,11 @@ class MainProcess extends ProcessAbstract
         while (true) {
             foreach ($this->processesList as $process) {
                 if ($process->getPid() === null) {
-                    $pid = $this->forkProcess([$process, 'start']);
+
+
+                    $pid = $this->forkProcess($process);
                     $process->setPid($pid);
+//
 //                    pcntl_setpriority($process->getPriority(), $process->getPid());
 
                     echo PHP_EOL . ' --- ' . get_class($process) . ' is started with pid ' . $process->getPid();

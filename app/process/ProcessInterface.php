@@ -8,7 +8,31 @@ namespace GolosEventListener\app\process;
 interface ProcessInterface
 {
     /**
-     * @param string $pid
+     * @param DBManagerInterface $dbManager
+     */
+    public function setDBManager($dbManager);
+
+    /**
+     * @return null|DBManagerInterface
+     */
+    public function getDBManager();
+
+    /**
+     * set id, witch it have in db
+     *
+     * @param string $id
+     */
+    public function setId($id);
+
+    /**
+     * get id, witch it have in db
+     *
+     * @return null|int
+     */
+    public function getId();
+
+    /**
+     * @param int $pid
      */
     public function setPid($pid);
 
@@ -32,9 +56,14 @@ interface ProcessInterface
     public function start();
 
     /**
-     * @param callable $childFunc
+     * @param ProcessInterface $process
      *
      * @return int process pid
      */
-    public function forkProcess(callable $childFunc);
+    public function forkProcess(ProcessInterface $process);
+
+    /**
+     * @return void
+     */
+    public function beforeStartAsFork();
 }
