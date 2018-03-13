@@ -68,7 +68,7 @@ class RedisManager implements DBManagerInterface
         $status = $this->connect->mset(
             [
                 "app:processes:{$id}:last_update_datetime" => isset($options['last_update_datetime'])
-                    ? $options['last_update_datetime'] : date('Y:m:d H:i:s'),
+                    ? $options['last_update_datetime'] : '',
                 "app:processes:{$id}:status"               => isset($options['status']) ? $options['status'] : '',
                 "app:processes:{$id}:pid"                  => isset($options['pid']) ? $options['pid'] : 0,
                 "app:processes:{$id}:handler"              => get_class($process)
@@ -127,6 +127,42 @@ class RedisManager implements DBManagerInterface
             }
         } else {
             $data = $this->connect->get("app:processes:{$id}:" . $key);
+        }
+
+        return $data;
+    }
+
+    /**
+     * remove all process from list
+     *
+     * @return void
+     */
+    public function processesListClear()
+    {
+        $this->connect()->select(0);
+        return $this->connect->del($this->connect->keys('app:processes:*'));
+    }
+
+    /**
+     * remove all process from list
+     *
+     * @return array
+     */
+    public function processesListGet()
+    {
+        $this->connect()->select(0);
+        $keys = $this->connect->keys("app:processes:*");
+//        echo PHP_EOL . 'processesListGet ' . print_r($keys, true);
+        $values = $this->connect->mGet($keys);
+
+        $data = [];
+        foreach ($keys as $n => $keyFull) {
+            if ($keyFull === 'app:processes:last_id') {
+                continue;
+            }
+            $shortKey = str_replace("app:processes:", '', $keyFull);
+            list($processId, $fieldName) = explode(':', $shortKey);
+            $data[$processId][$fieldName] = $values[$n];
         }
 
         return $data;

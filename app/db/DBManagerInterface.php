@@ -55,4 +55,18 @@ interface DBManagerInterface
      * @return mixed
      */
     public function processInfoById($id, $key = null);
+
+    /**
+     * remove all process from list
+     *
+     * @return void
+     */
+    public function processesListClear();
+
+    /**
+     * remove all process from list
+     *
+     * @return array
+     */
+    public function processesListGet();
 }
