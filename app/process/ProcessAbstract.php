@@ -1,7 +1,6 @@
 <?php
 
 
-
 namespace GolosEventListener\app\process;
 
 
@@ -9,14 +8,18 @@ use GolosEventListener\app\db\DBManagerInterface;
 
 abstract class ProcessAbstract implements ProcessInterface
 {
-    /** @var null|DBManagerInterface  */
+    /** @var null|DBManagerInterface */
     protected $dbManager = null;
-    /** @var null|int id in database*/
+    /** @var null|int id in database */
     protected $id = null;
-    /** @var null|int  */
+    /** @var null|int */
     protected $pid = null;
-    /** @var null|string  */
+    /** @var null|string */
     protected $priority = 0;
+    /** @var null|string */
+    protected $status;
+    /** @var null|string */
+    protected $lastUpdateDatetime;
 
     /**
      * @param DBManagerInterface $dbManager
@@ -55,33 +58,19 @@ abstract class ProcessAbstract implements ProcessInterface
     }
 
     /**
-     * @return null|int
+     * @return int|null
      */
     public function getPid()
     {
-        if (!$this->pid) {
-            $pid = $this->getDBManager()->processInfoById($this->getId(), 'pid');
-            $this->pid = $pid === false ? null : $pid;
-        }
-
         return $this->pid;
     }
 
     /**
-     * @param int $pid
+     * @param int|null $pid
      */
     public function setPid($pid)
     {
-        $this->getDBManager()->processUpdateById($this->getId(), ['pid' => $pid]);
         $this->pid = $pid;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getPriority()
-    {
-        return $this->priority;
     }
 
     /**
@@ -93,21 +82,70 @@ abstract class ProcessAbstract implements ProcessInterface
     }
 
     /**
+     * @return null|string
+     */
+    public function getPriority()
+    {
+        return $this->priority;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    /**
+     * @param null|string $status
+     */
+    public function setStatus($status)
+    {
+        $this->status = $status;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getLastUpdateDatetime()
+    {
+        return $this->lastUpdateDatetime;
+    }
+
+    /**
+     * @param null|string $lastUpdateDatetime
+     */
+    public function setLastUpdateDatetime($lastUpdateDatetime)
+    {
+        $this->lastUpdateDatetime = $lastUpdateDatetime;
+    }
+
+    /**
      * @param ProcessInterface $process
      *
      * @return int process pid
      */
     public function forkProcess(ProcessInterface $process)
     {
-        $process->beforeStartAsFork();
-
         if (!$pid = pcntl_fork()) {
             try {
                 //child process
                 $process->start();
+
             } catch (\Exception $e) {
+
                 exit();
+
             } finally {
+
+                $this->getDBManager()->processUpdateById(
+                    $process->getId(),
+                    [
+                        'status' => 'stopped',
+                        'pid'    => 0
+                    ]
+                );
                 exit();
             }
         }
@@ -115,14 +153,5 @@ abstract class ProcessAbstract implements ProcessInterface
 //        pcntl_wait($status);
 
         return $pid;
-    }
-
-    /**
-     *
-     */
-    public function beforeStartAsFork()
-    {
-        $processDBId = $this->getDBManager()->processAdd($this, ['status' => 'run']);
-        $this->setId($processDBId);
     }
 }

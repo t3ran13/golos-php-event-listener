@@ -51,6 +51,26 @@ interface ProcessInterface
      */
     public function getPriority();
 
+    /**
+     * @return null|string
+     */
+    public function getStatus();
+
+    /**
+     * @param null|string $status
+     */
+    public function setStatus($status);
+
+    /**
+     * @return null|string
+     */
+    public function getLastUpdateDatetime();
+
+    /**
+     * @param null|string $lastUpdateDatetime
+     */
+    public function setLastUpdateDatetime($lastUpdateDatetime);
+
     public function initSignalsHandlers();
 
     public function start();
@@ -61,9 +81,4 @@ interface ProcessInterface
      * @return int process pid
      */
     public function forkProcess(ProcessInterface $process);
-
-    /**
-     * @return void
-     */
-    public function beforeStartAsFork();
 }

@@ -30,20 +30,21 @@ class BlockchainExplorerProcess extends ProcessAbstract
     public function start()
     {
 //        pcntl_setpriority($this->priority);
-        echo PHP_EOL . ' BlockchainExplorer is running, info '
-            . print_r($this->getDBManager()->processInfoById($this->getId()), true);
+//        echo PHP_EOL . ' BlockchainExplorer is running, info '
+//            . print_r($this->getDBManager()->processInfoById($this->getId()), true);
         $this->getDBManager()->processUpdateById($this->getId(), ['status' => 'running']);
 
         $n = 1;
         while (true) {
-
-            echo PHP_EOL . ($n++) . ' BlockchainExplorer is running, info '
-                . print_r($this->getDBManager()->processInfoById($this->getId()), true);
             if ($n >= 10) {
                 break;
             }
 
             $this->getDBManager()->processUpdateById($this->getId(), ['last_update_datetime' => date('Y:m:d H:i:s')]);
+
+            echo PHP_EOL . ($n++) . ' BlockchainExplorer is running, info '
+                . print_r($this->getDBManager()->processInfoById($this->getId()), true);
+
             sleep(1);
         }
     }
