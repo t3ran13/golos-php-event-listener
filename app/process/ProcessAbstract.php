@@ -62,7 +62,7 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function getPid()
     {
-        return $this->pid;
+        return $this->getDBManager()->processInfoById($this->getId(), 'pid');
     }
 
     /**
@@ -70,7 +70,7 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function setPid($pid)
     {
-        $this->pid = $pid;
+        $this->getDBManager()->processUpdateById($this->getId(), ['pid' => $pid]);
     }
 
     /**
@@ -94,7 +94,7 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function getStatus()
     {
-        return $this->status;
+        return $this->getDBManager()->processInfoById($this->getId(), 'status');
     }
 
     /**
@@ -102,7 +102,7 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function setStatus($status)
     {
-        $this->status = $status;
+        $this->getDBManager()->processUpdateById($this->getId(), ['status' => $status]);
     }
 
     /**
@@ -110,7 +110,7 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function getLastUpdateDatetime()
     {
-        return $this->lastUpdateDatetime;
+        return $this->getDBManager()->processInfoById($this->getId(), 'last_update_datetime');
     }
 
     /**
@@ -118,7 +118,7 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function setLastUpdateDatetime($lastUpdateDatetime)
     {
-        $this->lastUpdateDatetime = $lastUpdateDatetime;
+        $this->getDBManager()->processUpdateById($this->getId(), ['last_update_datetime' => $lastUpdateDatetime]);
     }
 
     /**
@@ -128,24 +128,22 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function forkProcess(ProcessInterface $process)
     {
+
         if (!$pid = pcntl_fork()) {
             try {
                 //child process
+                $process->initSignalsHandlers();
+                $process->setStatus(ProcessInterface::STATUS_RUNNING);
                 $process->start();
 
             } catch (\Exception $e) {
 
-                exit();
+                echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got exception ' . $e->getMessage();
 
             } finally {
 
-                $this->getDBManager()->processUpdateById(
-                    $process->getId(),
-                    [
-                        'status' => 'stopped',
-                        'pid'    => 0
-                    ]
-                );
+                $process->setStatus(ProcessInterface::STATUS_STOPPED);
+                $process->setPid(0);
                 exit();
             }
         }

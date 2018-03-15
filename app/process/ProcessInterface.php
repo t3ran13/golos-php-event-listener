@@ -7,6 +7,10 @@ namespace GolosEventListener\app\process;
 
 interface ProcessInterface
 {
+    const STATUS_RUN = 'run';
+    const STATUS_RUNNING = 'running';
+    const STATUS_STOP = 'stop';
+    const STATUS_STOPPED = 'stopped';
     /**
      * @param DBManagerInterface $dbManager
      */
