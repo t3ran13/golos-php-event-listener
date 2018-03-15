@@ -13,10 +13,26 @@ class RedisManager implements DBManagerInterface
 
     public function connect()
     {
-        if ($this->connect === null || $this->connect->ping() !== '+PONG') {
-            $this->connect = new \Redis();
-            $this->connect->pconnect('redis', 6379);
-            $this->connect->auth(getenv('REDIS_PSWD'));
+//        if ($this->connect === null) {
+//            $this->connect = new \Redis();
+//            $this->connect->pconnect('redis', 6379);
+//            $this->connect->auth(getenv('REDIS_PSWD'));
+//            $this->connect->setOption(\Redis::OPT_SCAN, \Redis::SCAN_RETRY);
+//        }
+//        if ($this->connect->ping() !== '+PONG') {
+//            $this->connect->pconnect('redis', 6379);
+//            $this->connect->auth(getenv('REDIS_PSWD'));
+//            $this->connect->setOption(\Redis::OPT_SCAN, \Redis::SCAN_RETRY);
+//        }
+
+        if ($this->connect === null) {
+            $this->connect = new \Predis\Client('tcp://redis:6379',
+                [
+                    'parameters' => [
+                        'password' => getenv('REDIS_PSWD')
+                    ],
+                ]
+            );
         }
 
         return $this->connect;
@@ -108,15 +124,15 @@ class RedisManager implements DBManagerInterface
      * get process data by id
      *
      * @param int         $id
-     * @param null|string $key
+     * @param null|string $field
      *
      * @return mixed
      */
-    public function processInfoById($id, $key = null)
+    public function processInfoById($id, $field = null)
     {
         $this->connect()->select(0);
 
-        if ($key === null) {
+        if ($field === null) {
             $keys = $this->connect->keys("app:processes:{$id}:*");
             $values = $this->connect->mGet($keys);
 
@@ -126,7 +142,7 @@ class RedisManager implements DBManagerInterface
                 $data[$shortKey] = $values[$n];
             }
         } else {
-            $data = $this->connect->get("app:processes:{$id}:" . $key);
+            $data = $this->connect->get("app:processes:{$id}:" . $field);
         }
 
         return $data;
@@ -152,7 +168,6 @@ class RedisManager implements DBManagerInterface
     {
         $this->connect()->select(0);
         $keys = $this->connect->keys("app:processes:*");
-//        echo PHP_EOL . 'processesListGet ' . print_r($keys, true);
         $values = $this->connect->mGet($keys);
 
         $data = [];

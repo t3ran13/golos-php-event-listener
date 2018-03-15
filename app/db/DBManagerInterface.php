@@ -50,11 +50,11 @@ interface DBManagerInterface
      * get process data by id
      *
      * @param int         $id
-     * @param null|string $key
+     * @param null|string $field
      *
      * @return mixed
      */
-    public function processInfoById($id, $key = null);
+    public function processInfoById($id, $field = null);
 
     /**
      * remove all process from list
