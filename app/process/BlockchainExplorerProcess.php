@@ -11,6 +11,7 @@ use GolosEventListener\app\db\DBManagerInterface;
 class BlockchainExplorerProcess extends ProcessAbstract
 {
     protected $priority = 10;
+    protected $isRunning = true;
 
     /**
      * BlockchainExplorerProcess constructor.
@@ -24,7 +25,19 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
     public function initSignalsHandlers()
     {
-        // TODO: Implement initSignalsHandlers() method.
+        pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
+    }
+
+    public function signalsHandlers($signo, $pid = null, $status = null)
+    {
+        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo;
+
+        switch ($signo) {
+            case SIGTERM:
+                $this->isRunning = false;
+                break;
+            default:
+        }
     }
 
     public function start()
@@ -32,19 +45,19 @@ class BlockchainExplorerProcess extends ProcessAbstract
 //        pcntl_setpriority($this->priority);
 //        echo PHP_EOL . ' BlockchainExplorer is running, info '
 //            . print_r($this->getDBManager()->processInfoById($this->getId()), true);
-        $this->getDBManager()->processUpdateById($this->getId(), ['status' => 'running']);
+
 
         $n = 1;
-        while (true) {
-            if ($n >= 10) {
-                break;
-            }
+        while ($this->isRunning) {
 
-            $this->getDBManager()->processUpdateById($this->getId(), ['last_update_datetime' => date('Y:m:d H:i:s')]);
+            $this->setLastUpdateDatetime(date('Y:m:d H:i:s'));
 
+            $info = $this->getDBManager()->processInfoById($this->getId());
             echo PHP_EOL . ($n++) . ' BlockchainExplorer is running, info '
-                . print_r($this->getDBManager()->processInfoById($this->getId()), true);
+                . print_r($info, true);
 
+
+            pcntl_signal_dispatch();
             sleep(1);
         }
     }
