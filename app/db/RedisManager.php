@@ -107,14 +107,8 @@ class RedisManager implements DBManagerInterface
         $this->connect()->select(0);
         $set = [];
 
-        if (isset($options['last_update_datetime'])) {
-            $set["app:processes:{$id}:last_update_datetime"] = $options['last_update_datetime'];
-        }
-        if (isset($options['status'])) {
-            $set["app:processes:{$id}:status"] = $options['status'];
-        }
-        if (isset($options['pid'])) {
-            $set["app:processes:{$id}:pid"] = $options['pid'];
+        foreach($options as $key => $val) {
+            $set["app:processes:{$id}:{$key}"] = $val;
         }
 
         return $this->connect->mset($set);
@@ -139,7 +133,7 @@ class RedisManager implements DBManagerInterface
             $data = [];
             foreach ($keys as $n => $keyFull) {
                 $shortKey = str_replace("app:processes:{$id}:", '', $keyFull);
-                $data[$shortKey] = $values[$n];
+                $data = $this->setArrayElementByKey($data, $shortKey, $values[$n]);
             }
         } else {
             $data = $this->connect->get("app:processes:{$id}:" . $field);
@@ -177,11 +171,76 @@ class RedisManager implements DBManagerInterface
             }
             $shortKey = str_replace("app:processes:", '', $keyFull);
             list($processId, $fieldName) = explode(':', $shortKey);
-            $data[$processId][$fieldName] = $values[$n];
+            $data[$processId] = $this->setArrayElementByKey(
+                isset($data[$processId]) ? $data[$processId] : [],
+                $fieldName,
+                $values[$n]
+            );
         }
 
         return $data;
     }
 
+
+
+    /**
+     * get all values or vulue by key
+     *
+     * $getKey example: 'key:123:array' => $_SESSION['key']['123']['array']
+     *
+     * @param null|string $getKey
+     * @param null|mixed  $default
+     * @param array       $array
+     *
+     * @return mixed
+     */
+    public static function getArrayElementByKey($array = [], $getKey = null, $default = null)
+    {
+        $data = $array;
+        if ($getKey) {
+            $keyParts = explode(':', $getKey);
+            foreach ($keyParts as $key) {
+                if (isset($data[$key])) {
+                    $data = $data[$key];
+                } else {
+                    $data = null;
+                    break;
+                }
+            }
+        }
+
+        if ($data === null) {
+            $data = $default;
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * set value in array by key
+     *
+     * $setKey example: 'key:123:array' => $_SESSION['key']['123']['array']
+     *
+     * @param array  $array
+     * @param string $setKey
+     * @param mixed  $setVal
+     *
+     * @return array
+     */
+    public static function setArrayElementByKey($array, $setKey, $setVal)
+    {
+        $link = &$array;
+        $keyParts = explode(':', $setKey);
+        foreach ($keyParts as $key) {
+            if (!isset($link[$key])) {
+                $link[$key] = [];
+            }
+            $link = &$link[$key];
+        }
+        $link = $setVal;
+
+        return $array;
+    }
 
 }
