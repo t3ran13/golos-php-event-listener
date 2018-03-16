@@ -153,6 +153,7 @@ class MainProcess extends ProcessAbstract
 
         //init connect to db
         // get listeners list
+        $this->setStatus(ProcessInterface::STATUS_STOPPED);
 
         echo PHP_EOL . ' -- end task';
     }
