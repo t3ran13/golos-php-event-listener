@@ -8,3 +8,21 @@ services:
       - "9000:9000"
     volumes:
       - '.:/var/www/golos-event-listener'
+      - './docker/local/php/extensions/redis.ini:/usr/local/etc/php/conf.d/redis.ini'
+    environment:
+      - NODE_ENV=production
+      - REDIS_PSWD=${REDIS_PSWD}
+  redis:
+    image: redis:3
+    ports:
+      - "6379:6379"
+    command: [
+          "bash", "-c",
+          '
+           docker-entrypoint.sh
+           --requirepass ${REDIS_PSWD}
+           --appendonly yes
+          '
+    ]
+    volumes:
+      - './var/db/redis/data:/data'
