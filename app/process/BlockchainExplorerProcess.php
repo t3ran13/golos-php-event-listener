@@ -77,6 +77,8 @@ class BlockchainExplorerProcess extends ProcessAbstract
     public function runBlockScanner($blockNumber)
     {
         try {
+            $listeners = $this->getDBManager()->listenersListGet();
+
             $connector = new GolosWSConnector();
 
             $commandQuery = new CommandQueryData();
@@ -89,8 +91,21 @@ class BlockchainExplorerProcess extends ProcessAbstract
                 'result'
             );
 
+            $saveForHandle = [];
+            if (is_array($data)) {
+                foreach ($data as $trx) {
+                    foreach ($listeners as $listenerId => $listener) {
+                        if ($this->isTrxSatisfiesConditions($trx, $listener['conditions'])) {
+                            $saveForHandle[$listenerId][] = $trx;
+                        }
+                    }
+                }
+            }
+
             echo PHP_EOL . ' content of block ' . $blockNumber . ': '
                 . print_r($data, true);
+
+            echo '<pre>' . print_r($saveForHandle, true) . '<pre>'; die; //FIXME delete it
 
 
         } catch (\Exception $e) {
@@ -116,5 +131,52 @@ class BlockchainExplorerProcess extends ProcessAbstract
         }
 
         return $info['data'];
+    }
+
+
+    /**
+     * get all values or vulue by key
+     *
+     * $getKey example: 'key:123:array' => $_SESSION['key']['123']['array']
+     *
+     * @param null|string $getKey
+     * @param null|mixed  $default
+     * @param array       $array
+     *
+     * @return mixed
+     */
+    public static function getArrayElementByKey($array = [], $getKey = null, $default = null)
+    {
+        $data = $array;
+        if ($getKey) {
+            $keyParts = explode(':', $getKey);
+            foreach ($keyParts as $key) {
+                if (isset($data[$key])) {
+                    $data = $data[$key];
+                } else {
+                    $data = null;
+                    break;
+                }
+            }
+        }
+
+        if ($data === null) {
+            $data = $default;
+        }
+
+        return $data;
+    }
+
+    public function isTrxSatisfiesConditions($trx, $conditions)
+    {
+        $answer = true;
+        foreach ($conditions as $condition) {
+            if ($condition['value'] !== $this->getArrayElementByKey($trx, $condition['key'])) {
+                $answer = false;
+                break;
+            }
+        }
+
+        return $answer;
     }
 }
