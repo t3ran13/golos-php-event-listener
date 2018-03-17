@@ -27,11 +27,11 @@ class RedisManager implements DBManagerInterface
 
         if ($this->connect === null) {
             $this->connect = new \Predis\Client('tcp://redis:6379',
-                [
-                    'parameters' => [
-                        'password' => getenv('REDIS_PSWD')
-                    ],
-                ]
+                                                [
+                                                    'parameters' => [
+                                                        'password' => getenv('REDIS_PSWD')
+                                                    ],
+                                                ]
             );
         }
 
@@ -41,22 +41,27 @@ class RedisManager implements DBManagerInterface
     /**
      * add new event listener
      *
-     * @param string           $event
+     * @param array            $conditions
      * @param HandlerInterface $handler
      *
      * @return void
      */
-    public function listenerAdd($event, HandlerInterface $handler)
+    public function listenerAdd($conditions, HandlerInterface $handler)
     {
         $this->connect()->select(0);
         $id = $this->connect->incr('app:listeners:last_id');
 
-        return $this->connect->mset(
-            [
-                "app:listeners:{$id}:event"   => $event,
-                "app:listeners:{$id}:handler" => get_class($handler)
-            ]
-        );
+        $prefix = "app:listeners:{$id}";
+        $data[$prefix . ':handler'] = get_class($handler);
+
+        $n = 0;
+        foreach ($conditions as $key => $value) {
+            $data[$prefix . ':conditions:' . $n . ':key'] = $key;
+            $data[$prefix . ':conditions:' . $n . ':value'] = $value;
+            $n++;
+        }
+
+        return $this->connect->mset($data);
     }
 
     /**
@@ -67,7 +72,38 @@ class RedisManager implements DBManagerInterface
     public function listenersListClear()
     {
         $this->connect()->select(0);
-        return $this->connect->del($this->connect->keys('app:listeners:*'));
+        $keys = $this->connect->keys('app:listeners:*');
+        if (!empty($keys)) {
+            return $this->connect->del($keys);
+        }
+        return true;
+    }
+
+    /**
+     * get listeners list
+     *
+     * @return array
+     */
+    public function listenersListGet()
+    {
+        $this->connect()->select(0);
+        $keys = $this->connect->keys("app:listeners:*");
+        $values = $this->connect->mGet($keys);
+
+        $data = [];
+        foreach ($keys as $n => $keyFull) {
+            if ($keyFull === 'app:listeners:last_id') {
+                continue;
+            }
+            $shortKey = str_replace("app:listeners:", '', $keyFull);
+            $data = $this->setArrayElementByKey(
+                $data,
+                $shortKey,
+                $values[$n]
+            );
+        }
+
+        return $data;
     }
 
     /**
@@ -107,7 +143,7 @@ class RedisManager implements DBManagerInterface
         $this->connect()->select(0);
         $set = [];
 
-        foreach($options as $key => $val) {
+        foreach ($options as $key => $val) {
             $set["app:processes:{$id}:{$key}"] = $val;
         }
 
@@ -150,7 +186,11 @@ class RedisManager implements DBManagerInterface
     public function processesListClear()
     {
         $this->connect()->select(0);
-        return $this->connect->del($this->connect->keys('app:processes:*'));
+        $keys = $this->connect->keys('app:processes:*');
+        if (!empty($keys)) {
+            return $this->connect->del($keys);
+        }
+        return true;
     }
 
     /**
@@ -170,17 +210,15 @@ class RedisManager implements DBManagerInterface
                 continue;
             }
             $shortKey = str_replace("app:processes:", '', $keyFull);
-            list($processId, $fieldName) = explode(':', $shortKey);
-            $data[$processId] = $this->setArrayElementByKey(
-                isset($data[$processId]) ? $data[$processId] : [],
-                $fieldName,
+            $data = $this->setArrayElementByKey(
+                $data,
+                $shortKey,
                 $values[$n]
             );
         }
 
         return $data;
     }
-
 
 
     /**
