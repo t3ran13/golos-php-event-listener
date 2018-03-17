@@ -45,8 +45,8 @@ class MainProcess extends ProcessAbstract
     {
         $listeners = $this->appConfig->getListenersList();
         $this->getDBManager()->listenersListClear();
-        foreach ($listeners as $event => $handler) {
-            $this->getDBManager()->listenerAdd($event, $handler);
+        foreach ($listeners as $listener) {
+            $this->getDBManager()->listenerAdd($listener['conditions'], $listener['handler']);
         }
 
         $this->initSignalsHandlers();

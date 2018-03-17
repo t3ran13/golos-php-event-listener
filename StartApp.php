@@ -19,8 +19,9 @@ require __DIR__ . '/vendor/autoload.php';
 echo PHP_EOL . '------ StartApp.php ------' . PHP_EOL;
 
 $appConfig = new AppConfig();
-$appConfig->addListener('1:test:test', new PostIsCreatedHandler());
-$appConfig->addListener('2:test:test', new PostIsCreatedHandler());
+$appConfig->addListener(['op:1:voter' => 'fafnur', 'op:0' => 'vote'], new PostIsCreatedHandler());
+$appConfig->addListener(['op:0' => 'comment'], new PostIsCreatedHandler());
+$appConfig->addListener(['op:0' => 'vote'], new PostIsCreatedHandler());
 
 $mainProcess = new MainProcess(
     $appConfig,

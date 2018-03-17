@@ -1,9 +1,7 @@
 <?php
 
 
-
 namespace GolosEventListener\app;
-
 
 
 use GolosEventListener\app\handlers\HandlerInterface;
@@ -13,14 +11,17 @@ class AppConfig
     protected $listeners = [];
 
     /**
-     * @param string                 $eventKey
+     * @param array            $conditions
      * @param HandlerInterface $handler
      *
      * @return $this
      */
-    public function addListener($eventKey, HandlerInterface $handler)
+    public function addListener($conditions, HandlerInterface $handler)
     {
-        $this->listeners[$eventKey] = $handler;
+        $this->listeners[] = [
+            'conditions' => $conditions,
+            'handler'    => $handler
+        ];
 
         return $this;
     }
