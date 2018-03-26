@@ -105,7 +105,14 @@ class BlockchainExplorerProcess extends ProcessAbstract
             echo PHP_EOL . ' content of block ' . $blockNumber . ': '
                 . print_r($data, true);
 
-            echo '<pre>' . print_r($saveForHandle, true) . '<pre>'; die; //FIXME delete it
+            foreach ($saveForHandle as $listenerId => $trxs) {
+                foreach ($trxs as $trx) {
+                    $this->getDBManager()->eventAdd($listenerId, $trx);
+                }
+            }
+
+
+//            echo '<pre>' . print_r($saveForHandle, true) . '<pre>'; die; //FIXME delete it
 
 
         } catch (\Exception $e) {
