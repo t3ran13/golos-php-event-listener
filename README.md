@@ -16,5 +16,8 @@ DB structure:
     - app:processes:{id}:data:last_block
     
     - app:listeners:last_id
-    - app:listeners:{id}:event
     - app:listeners:{id}:handler
+    - app:listeners:{id}:conditions:{n}:key
+    - app:listeners:{id}:conditions:{n}:value
+    
+    - app:events:{listener_id}:{block_n}:{trx_n_in_block}
