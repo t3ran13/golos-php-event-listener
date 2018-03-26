@@ -76,4 +76,19 @@ interface DBManagerInterface
      * @return array
      */
     public function processesListGet();
+
+    /**
+     * remove all events from list
+     *
+     * @return void
+     */
+    public function eventsListClear();
+
+    /**
+     * @param int   $listenerId
+     * @param array $trx
+     *
+     * @return bool status
+     */
+    public function eventAdd($listenerId, $trx);
 }
