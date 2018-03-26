@@ -43,6 +43,7 @@ class MainProcess extends ProcessAbstract
      */
     public function init()
     {
+        $this->getDBManager()->eventsListClear();
         $listeners = $this->appConfig->getListenersList();
         $this->getDBManager()->listenersListClear();
         foreach ($listeners as $listener) {
