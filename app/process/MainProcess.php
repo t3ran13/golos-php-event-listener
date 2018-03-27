@@ -10,7 +10,7 @@ use GolosEventListener\app\db\DBManagerInterface;
 
 class MainProcess extends ProcessAbstract
 {
-    protected $priority = 20;
+    protected $priority = -20;
     protected $isRunning = true;
     /**
      * @var null|AppConfig
@@ -34,7 +34,8 @@ class MainProcess extends ProcessAbstract
 
         $dbClass = get_class($DBManager);
         $this->processesList = [
-            new BlockchainExplorerProcess(new $dbClass)
+            new BlockchainExplorerProcess(new $dbClass),
+            new EventsHandlersProcess(new $dbClass)
         ];
     }
 
@@ -101,7 +102,7 @@ class MainProcess extends ProcessAbstract
     public function start()
     {
         echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
-        pcntl_setpriority($this->priority);
+//        pcntl_setpriority($this->priority);
         $this->init();
 
         $n = 0;
