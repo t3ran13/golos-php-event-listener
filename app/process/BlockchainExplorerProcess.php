@@ -13,7 +13,7 @@ use GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector;
 class BlockchainExplorerProcess extends ProcessAbstract
 {
     protected $lastBlock = 14745442;
-    protected $priority = 10;
+    protected $priority = -10;
     protected $isRunning = true;
 
     /**
