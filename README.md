@@ -16,7 +16,12 @@ DB structure:
     - app:processes:{id}:data:last_block
     
     - app:listeners:last_id
+    - app:listeners:{id}:last_update_datetime
+    - app:listeners:{id}:status
+    - app:listeners:{id}:pid
     - app:listeners:{id}:handler
+    - app:listeners:{id}:data:last_block
+    - app:listeners:{id}:data:mode
     - app:listeners:{id}:conditions:{n}:key
     - app:listeners:{id}:conditions:{n}:value
     
