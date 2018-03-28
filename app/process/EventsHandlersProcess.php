@@ -18,7 +18,7 @@ class EventsHandlersProcess extends ProcessAbstract
      */
     public $appConfig;
     /**
-     * @var ProcessInterface|HandlerInterface[]
+     * @var ProcessInterface[]|HandlerInterface[]
      */
     public $processesList = [];
 
@@ -69,18 +69,31 @@ class EventsHandlersProcess extends ProcessAbstract
                 break;
             case SIGCHLD:
 
-                if (empty($signinfo['pid'])) {
-                    $pid = pcntl_waitpid(-1, $status, WNOHANG);
-                } else {
-                    $pid = $signinfo['pid'];
-                    $status = $signinfo['status'];
-                }
+
+                $pid = (string)$signinfo['pid'];
+                $status = $signinfo['status'];
 
                 echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;
-//                while ($pid > 0) {
-//                    $pid = pcntl_waitpid(-1, $status, WNOHANG);
-//                    echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;
-//                }
+
+                /** @var ProcessInterface|HandlerInterface|null $process */
+                $process = null;
+                foreach ($this->processesList as $processObj) {
+                    if ($processObj->getPid() === $pid) {
+                        $process = $processObj;
+                        break;
+                    }
+                }
+                $mode = $process->getListenerMode();
+                $status = $process->getStatus();
+                if (
+                    $status === ProcessInterface::STATUS_STOPPED
+                    && $mode === HandlerInterface::MODE_REPEAT
+                ) {
+                    $process->setStatus(ProcessInterface::STATUS_RUN);
+
+                    echo PHP_EOL . ' --- LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
+                }
+
                 break;
             default:
         }
@@ -123,11 +136,9 @@ class EventsHandlersProcess extends ProcessAbstract
 
             foreach ($this->processesList as $process) {
                 $status = $process->getStatus();
-                $mode = $process->getListenerMode();
 
                 if (
                     $status === ProcessInterface::STATUS_RUN
-                    || ($status === ProcessInterface::STATUS_STOPPED && $mode === HandlerInterface::MODE_REPEAT)
                 ) {
                     $pid = $this->forkProcess($process);
                     $process->setPid($pid);
