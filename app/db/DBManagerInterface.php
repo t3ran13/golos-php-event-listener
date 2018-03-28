@@ -14,12 +14,12 @@ interface DBManagerInterface
     /**
      * add new event listener
      *
-     * @param array            $conditions
      * @param HandlerInterface $handler
+     * @param array            $options
      *
      * @return void
      */
-    public function listenerAdd($conditions, HandlerInterface $handler);
+    public function listenerAdd(HandlerInterface $handler, $options);
 
     /**
      * remove all events from listeners list
@@ -34,6 +34,26 @@ interface DBManagerInterface
      * @return array
      */
     public function listenersListGet();
+
+    /**
+     * update listener data
+     *
+     * @param int   $id
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function listenerUpdateById($id, $options);
+
+    /**
+     * get listener data by id
+     *
+     * @param int         $id
+     * @param null|string $field
+     *
+     * @return mixed
+     */
+    public function listenerGetById($id, $field = null);
 
     /**
      * @param ProcessInterface $process

@@ -26,12 +26,13 @@ class RedisManager implements DBManagerInterface
 //        }
 
         if ($this->connect === null) {
-            $this->connect = new \Predis\Client('tcp://redis:6379',
-                                                [
-                                                    'parameters' => [
-                                                        'password' => getenv('REDIS_PSWD')
-                                                    ],
-                                                ]
+            $this->connect = new \Predis\Client(
+                'tcp://redis:6379',
+                [
+                    'parameters' => [
+                        'password' => getenv('REDIS_PSWD')
+                    ],
+                ]
             );
         }
 
@@ -41,24 +42,21 @@ class RedisManager implements DBManagerInterface
     /**
      * add new event listener
      *
-     * @param array            $conditions
      * @param HandlerInterface $handler
+     * @param array            $options
      *
      * @return void
      */
-    public function listenerAdd($conditions, HandlerInterface $handler)
+    public function listenerAdd(HandlerInterface $handler, $options)
     {
         $this->connect()->select(0);
         $id = $this->connect->incr('app:listeners:last_id');
 
-        $prefix = "app:listeners:{$id}";
-        $data[$prefix . ':handler'] = get_class($handler);
+        $prefix = "app:listeners:{$id}:";
+        $data[$prefix . 'handler'] = get_class($handler);
 
-        $n = 0;
-        foreach ($conditions as $key => $value) {
-            $data[$prefix . ':conditions:' . $n . ':key'] = $key;
-            $data[$prefix . ':conditions:' . $n . ':value'] = $value;
-            $n++;
+        foreach ($options as $key => $value) {
+            $data[$prefix . $key] = $value;
         }
 
         return $this->connect->mset($data);
@@ -101,6 +99,54 @@ class RedisManager implements DBManagerInterface
                 $shortKey,
                 $values[$n]
             );
+        }
+
+        return $data;
+    }
+
+    /**
+     * update listener data
+     *
+     * @param int   $id
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function listenerUpdateById($id, $options)
+    {
+        $this->connect()->select(0);
+        $set = [];
+
+        foreach ($options as $key => $val) {
+            $set["app:listeners:{$id}:{$key}"] = $val;
+        }
+
+        return $this->connect->mset($set);
+    }
+
+    /**
+     * get listener data by id
+     *
+     * @param int         $id
+     * @param null|string $field
+     *
+     * @return mixed
+     */
+    public function listenerGetById($id, $field = null)
+    {
+        $this->connect()->select(0);
+
+        if ($field === null) {
+            $keys = $this->connect->keys("app:listeners:{$id}:*");
+            $values = $this->connect->mGet($keys);
+
+            $data = [];
+            foreach ($keys as $n => $keyFull) {
+                $shortKey = str_replace("app:listeners:{$id}:", '', $keyFull);
+                $data = $this->setArrayElementByKey($data, $shortKey, $values[$n]);
+            }
+        } else {
+            $data = $this->connect->get("app:listeners:{$id}:" . $field);
         }
 
         return $data;
