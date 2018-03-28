@@ -114,6 +114,7 @@ class MainProcess extends ProcessAbstract
                     $pid = pcntl_waitpid(-1, $status, WNOHANG);
                 } else {
                     $pid = $signinfo['pid'];
+                    $status = $signinfo['status'];
                 }
 
                 echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;

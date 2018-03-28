@@ -143,7 +143,7 @@ abstract class ProcessAbstract implements ProcessInterface
             } finally {
 
                 $process->setStatus(ProcessInterface::STATUS_STOPPED);
-                $process->setPid(0);
+//                $process->setPid(0);
                 exit();
             }
         }
