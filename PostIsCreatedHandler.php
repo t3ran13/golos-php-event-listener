@@ -29,9 +29,10 @@ class PostIsCreatedHandler extends HandlerAbstract
         pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
     }
 
-    public function signalsHandlers($signo, $pid = null, $status = null)
+    public function signalsHandlers($signo, $signinfo)
     {
-        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo;
+        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo . ' and signinfo='
+            . print_r($signinfo, true);
 
         switch ($signo) {
             case SIGTERM:
@@ -43,6 +44,7 @@ class PostIsCreatedHandler extends HandlerAbstract
 
     public function start()
     {
-        echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
+        echo PHP_EOL . ' --- ' . get_class($this) . ' is running';
+        echo PHP_EOL . ' --- ' . get_class($this) . ' done work';
     }
 }

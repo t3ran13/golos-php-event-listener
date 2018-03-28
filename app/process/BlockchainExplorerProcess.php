@@ -41,9 +41,10 @@ class BlockchainExplorerProcess extends ProcessAbstract
         pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
     }
 
-    public function signalsHandlers($signo, $pid = null, $status = null)
+    public function signalsHandlers($signo, $signinfo)
     {
-        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo;
+        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo . ' and signinfo='
+            . print_r($signinfo, true);
 
         switch ($signo) {
             case SIGTERM:

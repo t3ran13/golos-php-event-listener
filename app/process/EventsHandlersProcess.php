@@ -45,11 +45,13 @@ class EventsHandlersProcess extends ProcessAbstract
     public function initSignalsHandlers()
     {
         pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
+        pcntl_signal(SIGCHLD, [$this, 'signalsHandlers']);
     }
 
-    public function signalsHandlers($signo, $pid = null, $status = null)
+    public function signalsHandlers($signo, $signinfo)
     {
-        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo;
+        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo . ' and signinfo='
+            . print_r($signinfo, true);
 
         switch ($signo) {
             case SIGTERM:
@@ -64,6 +66,21 @@ class EventsHandlersProcess extends ProcessAbstract
                     }
                 }
                 $this->isRunning = false;
+                break;
+            case SIGCHLD:
+
+                if (empty($signinfo['pid'])) {
+                    $pid = pcntl_waitpid(-1, $status, WNOHANG);
+                } else {
+                    $pid = $signinfo['pid'];
+                    $status = $signinfo['status'];
+                }
+
+                echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;
+//                while ($pid > 0) {
+//                    $pid = pcntl_waitpid(-1, $status, WNOHANG);
+//                    echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;
+//                }
                 break;
             default:
         }
