@@ -48,7 +48,19 @@ class MainProcess extends ProcessAbstract
         $listeners = $this->appConfig->getListenersList();
         $this->getDBManager()->listenersListClear();
         foreach ($listeners as $listener) {
-            $this->getDBManager()->listenerAdd($listener['conditions'], $listener['handler']);
+
+            $params['last_update_datetime'] = '';
+            $params['status'] = ProcessInterface::STATUS_RUN;
+            $params['pid'] = 0;
+            $params['data:mode'] = $listener['handler']->listenerMode;
+
+            $n = 0;
+            foreach ($listener['conditions'] as $key => $value) {
+                $params['conditions:' . $n . ':key'] = $key;
+                $params['conditions:' . $n . ':value'] = $value;
+                $n++;
+            }
+            $this->getDBManager()->listenerAdd($listener['handler'], $params);
         }
 
         $this->initSignalsHandlers();
@@ -104,6 +116,7 @@ class MainProcess extends ProcessAbstract
         echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
 //        pcntl_setpriority($this->priority);
         $this->init();
+        $dbClass = get_class($this->getDBManager());
 
         $n = 0;
         while ($this->isRunning) {
@@ -125,8 +138,8 @@ class MainProcess extends ProcessAbstract
                 }
 
                 if ($processObj === null) {
-                    $dbClass = get_class($this->getDBManager());
                     $processObj = new $lastProcessInfo['handler'](new $dbClass);
+                    $processObj->init();
                     $processObj->setId($processId);
                     $this->processesList[] = $processObj;
 
@@ -137,13 +150,13 @@ class MainProcess extends ProcessAbstract
             foreach ($this->processesList as $process) {
                 $status = $process->getStatus();
                 if (
-                    $status === 'run'
+                    $status === ProcessInterface::STATUS_RUN
                 ) {
                     $pid = $this->forkProcess($process);
                     $process->setPid($pid);
 
-                    echo PHP_EOL . ' --- ' . get_class($process) . ' is started with id=' . $process->getId();
-                } elseif($status === 'stop') {
+                    echo PHP_EOL . ' --- PROCESS ID=' . $process->getId() . ' is started with pid=' . $pid;
+                } elseif($status === ProcessInterface::STATUS_STOP) {
                     echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
                     posix_kill($process->getPid(), SIGTERM);
                 }
@@ -157,6 +170,6 @@ class MainProcess extends ProcessAbstract
         // get listeners list
         $this->setStatus(ProcessInterface::STATUS_STOPPED);
 
-        echo PHP_EOL . ' -- end task';
+        echo PHP_EOL . ' -- end task of ' . get_class($this);
     }
 }

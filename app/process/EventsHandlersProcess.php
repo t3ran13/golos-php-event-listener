@@ -7,6 +7,7 @@ namespace GolosEventListener\app\process;
 
 use GolosEventListener\app\AppConfig;
 use GolosEventListener\app\db\DBManagerInterface;
+use GolosEventListener\app\handlers\HandlerInterface;
 
 class EventsHandlersProcess extends ProcessAbstract
 {
@@ -17,7 +18,7 @@ class EventsHandlersProcess extends ProcessAbstract
      */
     public $appConfig;
     /**
-     * @var ProcessInterface[]
+     * @var ProcessInterface|HandlerInterface[]
      */
     public $processesList = [];
 
@@ -29,9 +30,16 @@ class EventsHandlersProcess extends ProcessAbstract
     public function __construct(DBManagerInterface $DBManager)
     {
         $this->setDBManager($DBManager);
+    }
 
-        $this->processesList = [
-        ];
+    /**
+     * run before process start
+     *
+     * @return void
+     */
+    public function init()
+    {
+        // TODO: Implement init() method.
     }
 
     public function initSignalsHandlers()
@@ -66,16 +74,54 @@ class EventsHandlersProcess extends ProcessAbstract
     {
         echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
         $this->init();
+        $dbClass = get_class($this->getDBManager());
 
         while ($this->isRunning) {
             echo PHP_EOL . '--- EventsHandlersProcess is running';
             $this->setLastUpdateDatetime(date('Y:m:d H:i:s'));
 
 
-            $listeners = $this->getDBManager()->listenersListGet();
-            foreach ($listeners as $listener) {
-//            $this->getDBManager()->listenerAdd($listener['conditions'], $listener['handler']);
+            $listenersFromDB = $this->getDBManager()->listenersListGet();
+
+            foreach ($listenersFromDB as $listenerId => $listenerInfo) {
+                /** @var ProcessInterface|HandlerInterface|null $processObj */
+                $processObj = null;
+
+                foreach ($this->processesList as $process) {
+                    if ($process->getId() === $listenerId) {
+                        $processObj = $process;
+                        break;
+                    }
+                }
+
+                if ($processObj === null) {
+                    $processObj = new $listenerInfo['handler']();
+                    $processObj->init();
+                    $processObj->setId($listenerId);
+                    $this->processesList[] = $processObj;
+
+                    echo PHP_EOL . ' --- ' . get_class($processObj) . ' is init';
+                }
             }
+
+            foreach ($this->processesList as $process) {
+                $status = $process->getStatus();
+                $mode = $process->getListenerMode();
+
+                if (
+                    $status === ProcessInterface::STATUS_RUN
+                    || ($status === ProcessInterface::STATUS_STOPPED && $mode === HandlerInterface::MODE_REPEAT)
+                ) {
+                    $pid = $this->forkProcess($process);
+                    $process->setPid($pid);
+
+                    echo PHP_EOL . ' --- LISTENER ID=' . $process->getId() . ' is started with pid=' . $pid;
+                } elseif($status === ProcessInterface::STATUS_STOP) {
+                    echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
+                    posix_kill($process->getPid(), SIGTERM);
+                }
+            }
+
 
             pcntl_signal_dispatch();
             sleep(1);
@@ -85,6 +131,6 @@ class EventsHandlersProcess extends ProcessAbstract
         // get listeners list
         $this->setStatus(ProcessInterface::STATUS_STOPPED);
 
-        echo PHP_EOL . ' -- end task';
+        echo PHP_EOL . ' -- end task of ' . get_class($this);
     }
 }
