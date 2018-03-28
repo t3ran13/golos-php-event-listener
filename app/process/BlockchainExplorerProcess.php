@@ -26,6 +26,16 @@ class BlockchainExplorerProcess extends ProcessAbstract
         $this->setDBManager($DBManager);
     }
 
+    /**
+     * run before process start
+     *
+     * @return void
+     */
+    public function init()
+    {
+        // TODO: Implement init() method.
+    }
+
     public function initSignalsHandlers()
     {
         pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
@@ -102,8 +112,8 @@ class BlockchainExplorerProcess extends ProcessAbstract
                 }
             }
 
-            echo PHP_EOL . ' content of block ' . $blockNumber . ': '
-                . print_r($data, true);
+//            echo PHP_EOL . ' content of block ' . $blockNumber . ': '
+//                . print_r($data, true);
 
             foreach ($saveForHandle as $listenerId => $trxs) {
                 foreach ($trxs as $trx) {

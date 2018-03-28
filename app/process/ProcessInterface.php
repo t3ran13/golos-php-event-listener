@@ -11,6 +11,14 @@ interface ProcessInterface
     const STATUS_RUNNING = 'running';
     const STATUS_STOP = 'stop';
     const STATUS_STOPPED = 'stopped';
+
+    /**
+     * run before process start
+     *
+     * @return void
+     */
+    public function init();
+
     /**
      * @param DBManagerInterface $dbManager
      */
