@@ -111,4 +111,24 @@ interface DBManagerInterface
      * @return bool status
      */
     public function eventAdd($listenerId, $trx);
+
+    /**
+     * insert error to error log list
+     *
+     * @param int    $id
+     * @param string $error
+     *
+     * @return mixed
+     */
+    public function listenerErrorInsertToLog($id, $error);
+
+    /**
+     * insert error to error log list
+     *
+     * @param int    $id
+     * @param string $error
+     *
+     * @return mixed
+     */
+    public function processErrorInsertToLog($id, $error);
 }

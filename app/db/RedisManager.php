@@ -361,4 +361,33 @@ class RedisManager implements DBManagerInterface
         return $status;
     }
 
+    /**
+     * insert error to error log list
+     *
+     * @param int    $id
+     * @param string $error
+     *
+     * @return mixed
+     */
+    public function listenerErrorInsertToLog($id, $error)
+    {
+        $this->connect()->select(0);
+
+        return $this->connect->rPush("app:listeners:{$id}:errors_list", $error);
+    }
+
+    /**
+     * insert error to error log list
+     *
+     * @param int    $id
+     * @param string $error
+     *
+     * @return mixed
+     */
+    public function processErrorInsertToLog($id, $error)
+    {
+        $this->connect()->select(0);
+
+        return $this->connect->rPush("app:processes:{$id}:errors_list", $error);
+    }
 }
