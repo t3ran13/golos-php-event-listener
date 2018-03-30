@@ -44,7 +44,8 @@ class PostIsCreatedHandler extends HandlerAbstract
 
     public function start()
     {
-        echo PHP_EOL . ' --- ' . get_class($this) . ' is running';
-        echo PHP_EOL . ' --- ' . get_class($this) . ' done work';
+        echo PHP_EOL . ' --- listener with pid=' . $this->getPid() . ' is running';
+        sleep(1);
+        echo PHP_EOL . ' --- listener with pid=' . $this->getPid() . ' did work';
     }
 }

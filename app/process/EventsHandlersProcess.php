@@ -1,7 +1,6 @@
 <?php
 
 
-
 namespace GolosEventListener\app\process;
 
 
@@ -11,7 +10,7 @@ use GolosEventListener\app\handlers\HandlerInterface;
 
 class EventsHandlersProcess extends ProcessAbstract
 {
-    protected $priority = -9;
+    protected $priority  = -9;
     protected $isRunning = true;
     /**
      * @var null|AppConfig
@@ -45,7 +44,7 @@ class EventsHandlersProcess extends ProcessAbstract
     public function initSignalsHandlers()
     {
         pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
-        pcntl_signal(SIGCHLD, [$this, 'signalsHandlers']);
+//        pcntl_signal(SIGCHLD, [$this, 'signalsHandlers']);
     }
 
     public function signalsHandlers($signo, $signinfo)
@@ -67,34 +66,6 @@ class EventsHandlersProcess extends ProcessAbstract
                 }
                 $this->isRunning = false;
                 break;
-            case SIGCHLD:
-
-
-                $pid = (string)$signinfo['pid'];
-                $status = $signinfo['status'];
-
-                echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;
-
-                /** @var ProcessInterface|HandlerInterface|null $process */
-                $process = null;
-                foreach ($this->processesList as $processObj) {
-                    if ($processObj->getPid() === $pid) {
-                        $process = $processObj;
-                        break;
-                    }
-                }
-                $mode = $process->getListenerMode();
-                $status = $process->getStatus();
-                if (
-                    $status === ProcessInterface::STATUS_STOPPED
-                    && $mode === HandlerInterface::MODE_REPEAT
-                ) {
-                    $process->setStatus(ProcessInterface::STATUS_RUN);
-
-                    echo PHP_EOL . ' --- LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
-                }
-
-                break;
             default:
         }
     }
@@ -103,12 +74,12 @@ class EventsHandlersProcess extends ProcessAbstract
     public function start()
     {
         echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
+
         $this->init();
-        $dbClass = get_class($this->getDBManager());
 
         while ($this->isRunning) {
             echo PHP_EOL . '--- EventsHandlersProcess is running';
-            $this->setLastUpdateDatetime(date('Y:m:d H:i:s'));
+            $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
 
             $listenersFromDB = $this->getDBManager()->listenersListGet();
@@ -141,18 +112,63 @@ class EventsHandlersProcess extends ProcessAbstract
                     $status === ProcessInterface::STATUS_RUN
                 ) {
                     $pid = $this->forkProcess($process);
-                    $process->setPid($pid);
 
-                    echo PHP_EOL . ' --- LISTENER ID=' . $process->getId() . ' is started with pid=' . $pid;
-                } elseif($status === ProcessInterface::STATUS_STOP) {
+                    if ($pid > 0) {
+                        $process->setPid($pid);
+                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' is started with pid=' . $pid;
+                    } else {
+                        echo PHP_EOL . date('Y.m.d H:i:s') . ' CANT RUN LISTENER ID=' . $process->getId();
+                    }
+                } elseif ($status === ProcessInterface::STATUS_STOP) {
                     echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
                     posix_kill($process->getPid(), SIGTERM);
                 }
             }
 
+            sleep(2);
+
+
+
+
+
+
+            $pid = 1;
+            while ($pid > 0) {
+                $pid = pcntl_waitpid(-1, $status, WNOHANG);
+                if ($pid > 0) {
+                    echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $status;
+
+                    if(pcntl_wifexited($status)) {
+                        $code = pcntl_wexitstatus($status);
+                        print " and returned exit code: $code\n";
+                    }
+                    else {
+                        print " and was unnaturally terminated\n";
+                    }
+
+                    /** @var ProcessInterface|HandlerInterface|null $process */
+                    $process = null;
+                    foreach ($this->processesList as $processObj) {
+                        if ((int)$processObj->getPid() === $pid) {
+                            $process = $processObj;
+                            break;
+                        }
+                    }
+                    $mode = $process->getListenerMode();
+                    $status = $process->getStatus();
+                    if (
+                        $status === ProcessInterface::STATUS_STOPPED
+                        && $mode === HandlerInterface::MODE_REPEAT
+                    ) {
+                        $process->setStatus(ProcessInterface::STATUS_RUN);
+
+                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
+                    }
+                }
+            }
+
 
             pcntl_signal_dispatch();
-            sleep(1);
         }
 
         //init connect to db

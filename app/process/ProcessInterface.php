@@ -93,4 +93,9 @@ interface ProcessInterface
      * @return int process pid
      */
     public function forkProcess(ProcessInterface $process);
+
+    /**
+     * @param string $error
+     */
+    public function errorInsertToLog($error);
 }

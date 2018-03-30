@@ -146,4 +146,12 @@ abstract class HandlerAbstract implements HandlerInterface,ProcessInterface
     {
         $this->getDBManager()->listenerUpdateById($this->getId(), ['data:mode' => $mode]);
     }
+
+    /**
+     * @param string $error
+     */
+    public function errorInsertToLog($error)
+    {
+        $this->getDBManager()->listenerErrorInsertToLog($this->getId(), $error);
+    }
 }

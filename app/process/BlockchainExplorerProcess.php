@@ -65,7 +65,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
         $n = 1;
         while ($this->isRunning) {
 
-            $this->setLastUpdateDatetime(date('Y:m:d H:i:s'));
+            $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
             $info = $this->getDBManager()->processInfoById($this->getId());
             echo PHP_EOL . ($n++) . ' BlockchainExplorer is running, info '

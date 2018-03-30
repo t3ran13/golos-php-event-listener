@@ -128,28 +128,37 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function forkProcess(ProcessInterface $process)
     {
-
-        if (!$pid = pcntl_fork()) {
+        $pid = pcntl_fork();
+        if ($pid === 0) {//child process start
             try {
-                //child process
                 $process->initSignalsHandlers();
                 $process->setStatus(ProcessInterface::STATUS_RUNNING);
                 $process->start();
 
             } catch (\Exception $e) {
 
-                echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got exception ' . $e->getMessage();
+                $msg = '"' . $e->getMessage() . '" ' . $e->getTraceAsString();
+                echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got exception ' . $msg;
+                $process->errorInsertToLog(date('Y-m-d H:i:s') . '   ' . $msg);
 
             } finally {
 
                 $process->setStatus(ProcessInterface::STATUS_STOPPED);
 //                $process->setPid(0);
-                exit();
+                exit(1);
             }
         }
         //parent process
 //        pcntl_wait($status);
 
         return $pid;
+    }
+
+    /**
+     * @param string $error
+     */
+    public function errorInsertToLog($error)
+    {
+        $this->getDBManager()->processErrorInsertToLog($this->getId(), $error);
     }
 }

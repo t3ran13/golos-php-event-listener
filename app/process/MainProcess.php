@@ -86,7 +86,7 @@ class MainProcess extends ProcessAbstract
     public function initSignalsHandlers()
     {
         pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
-        pcntl_signal(SIGCHLD, [$this, 'signalsHandlers']);
+//        pcntl_signal(SIGCHLD, [$this, 'signalsHandlers']);
     }
 
     public function signalsHandlers($signo, $signinfo)
@@ -108,21 +108,6 @@ class MainProcess extends ProcessAbstract
                 }
                 $this->isRunning = false;
                 break;
-            case SIGCHLD:
-
-                if (empty($signinfo['pid'])) {
-                    $pid = pcntl_waitpid(-1, $status, WNOHANG);
-                } else {
-                    $pid = $signinfo['pid'];
-                    $status = $signinfo['status'];
-                }
-
-                echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;
-//                while ($pid > 0) {
-//                    $pid = pcntl_waitpid(-1, $status, WNOHANG);
-//                    echo PHP_EOL . ' --- from child with pid=' . $pid . ' got status=' . $status;
-//                }
-                break;
             default:
         }
     }
@@ -139,7 +124,7 @@ class MainProcess extends ProcessAbstract
         while ($this->isRunning) {
             echo PHP_EOL . '--- ' .($n++) . ' MainProcess is running';
 
-            $this->setLastUpdateDatetime(date('Y:m:d H:i:s'));
+            $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
             $listProcessFromDB = $this->getDBManager()->processesListGet();
 
@@ -176,6 +161,23 @@ class MainProcess extends ProcessAbstract
                 } elseif($status === ProcessInterface::STATUS_STOP) {
                     echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
                     posix_kill($process->getPid(), SIGTERM);
+                }
+            }
+
+
+            $pid = 1;
+            while ($pid > 0) {
+                $pid = pcntl_waitpid(-1, $status, WNOHANG);
+                if ($pid > 0) {
+                    echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $status;
+
+                    if(pcntl_wifexited($status)) {
+                        $code = pcntl_wexitstatus($status);
+                        print " and returned exit code: $code\n";
+                    }
+                    else {
+                        print " and was unnaturally terminated\n";
+                    }
                 }
             }
 
