@@ -5,26 +5,16 @@
 namespace GolosEventListener\app\process;
 
 
-use GolosEventListener\app\AppConfig;
-use GolosEventListener\app\db\DBManagerInterface;
+
+use GolosEventListener\app\db\RedisManager;
 use GrapheneNodeClient\Commands\CommandQueryData;
 use GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector;
 
 class BlockchainExplorerProcess extends ProcessAbstract
 {
     protected $lastBlock = 14745442;
-    protected $priority = -10;
+    protected $priority = 10;
     protected $isRunning = true;
-
-    /**
-     * BlockchainExplorerProcess constructor.
-     *
-     * @param DBManagerInterface $DBManager
-     */
-    public function __construct(DBManagerInterface $DBManager)
-    {
-        $this->setDBManager($DBManager);
-    }
 
     /**
      * run before process start
@@ -33,7 +23,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
      */
     public function init()
     {
-        // TODO: Implement init() method.
+        $this->setDBManager(new RedisManager());
     }
 
     public function initSignalsHandlers()
@@ -56,6 +46,8 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
     public function start()
     {
+        pcntl_setpriority($this->priority, getmypid());
+
 //        pcntl_setpriority($this->priority);
 //        echo PHP_EOL . ' BlockchainExplorer is running, info '
 //            . print_r($this->getDBManager()->processInfoById($this->getId()), true);
@@ -197,4 +189,14 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
         return $answer;
     }
+
+    /**
+     * clear parent resourses in child process
+     *
+     * @return void
+     */
+    public function clearParentResources()
+    {
+    }
+
 }
