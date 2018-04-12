@@ -11,6 +11,12 @@ class RedisManager implements DBManagerInterface
 {
     protected $connect;
 
+    public function __construct()
+    {
+        $this->connect();
+    }
+
+
     public function connect()
     {
 //        if ($this->connect === null) {
@@ -27,11 +33,14 @@ class RedisManager implements DBManagerInterface
 
         if ($this->connect === null) {
             $this->connect = new \Predis\Client(
-                'tcp://redis:6379',
                 [
-                    'parameters' => [
-                        'password' => getenv('REDIS_PSWD')
-                    ],
+                    'scheme'             => 'tcp',
+                    'host'               => 'redis',
+                    'port'               => 6379,
+                    'database'           => 0,
+                    'read_write_timeout' => -1,
+                    'async'              => false,
+                    'password'           => getenv('REDIS_PSWD')
                 ]
             );
         }
@@ -49,7 +58,6 @@ class RedisManager implements DBManagerInterface
      */
     public function listenerAdd(HandlerInterface $handler, $options)
     {
-        $this->connect()->select(0);
         $id = $this->connect->incr('app:listeners:last_id');
 
         $prefix = "app:listeners:{$id}:";
@@ -69,7 +77,6 @@ class RedisManager implements DBManagerInterface
      */
     public function listenersListClear()
     {
-        $this->connect()->select(0);
         $keys = $this->connect->keys('app:listeners:*');
         if (!empty($keys)) {
             return $this->connect->del($keys);
@@ -84,7 +91,6 @@ class RedisManager implements DBManagerInterface
      */
     public function listenersListGet()
     {
-        $this->connect()->select(0);
         $keys = $this->connect->keys("app:listeners:*");
         $values = $this->connect->mGet($keys);
 
@@ -114,7 +120,6 @@ class RedisManager implements DBManagerInterface
      */
     public function listenerUpdateById($id, $options)
     {
-        $this->connect()->select(0);
         $set = [];
 
         foreach ($options as $key => $val) {
@@ -134,8 +139,6 @@ class RedisManager implements DBManagerInterface
      */
     public function listenerGetById($id, $field = null)
     {
-        $this->connect()->select(0);
-
         if ($field === null) {
             $keys = $this->connect->keys("app:listeners:{$id}:*");
             $values = $this->connect->mGet($keys);
@@ -160,7 +163,6 @@ class RedisManager implements DBManagerInterface
      */
     public function processAdd(ProcessInterface $process, $options)
     {
-        $this->connect()->select(0);
         $id = $this->connect->incr('app:processes:last_id');
 
         $status = $this->connect->mset(
@@ -186,7 +188,6 @@ class RedisManager implements DBManagerInterface
      */
     public function processUpdateById($id, $options)
     {
-        $this->connect()->select(0);
         $set = [];
 
         foreach ($options as $key => $val) {
@@ -206,8 +207,6 @@ class RedisManager implements DBManagerInterface
      */
     public function processInfoById($id, $field = null)
     {
-        $this->connect()->select(0);
-
         if ($field === null) {
             $keys = $this->connect->keys("app:processes:{$id}:*");
             $values = $this->connect->mGet($keys);
@@ -231,7 +230,6 @@ class RedisManager implements DBManagerInterface
      */
     public function processesListClear()
     {
-        $this->connect()->select(0);
         $keys = $this->connect->keys('app:processes:*');
         if (!empty($keys)) {
             return $this->connect->del($keys);
@@ -246,7 +244,6 @@ class RedisManager implements DBManagerInterface
      */
     public function processesListGet()
     {
-        $this->connect()->select(0);
         $keys = $this->connect->keys("app:processes:*");
         $values = $this->connect->mGet($keys);
 
@@ -334,7 +331,6 @@ class RedisManager implements DBManagerInterface
      */
     public function eventsListClear()
     {
-        $this->connect()->select(0);
         $keys = $this->connect->keys('app:events:*');
         if (!empty($keys)) {
             return $this->connect->del($keys);
@@ -350,8 +346,6 @@ class RedisManager implements DBManagerInterface
      */
     public function eventAdd($listenerId, $trx)
     {
-        $this->connect()->select(0);
-
         $status = $this->connect->mset(
             [
                 "app:events:{$listenerId}:{$trx['block']}:{$trx['trx_in_block']}" => json_encode($trx, JSON_UNESCAPED_UNICODE)
@@ -371,8 +365,6 @@ class RedisManager implements DBManagerInterface
      */
     public function listenerErrorInsertToLog($id, $error)
     {
-        $this->connect()->select(0);
-
         return $this->connect->rPush("app:listeners:{$id}:errors_list", $error);
     }
 
@@ -386,8 +378,6 @@ class RedisManager implements DBManagerInterface
      */
     public function processErrorInsertToLog($id, $error)
     {
-        $this->connect()->select(0);
-
         return $this->connect->rPush("app:processes:{$id}:errors_list", $error);
     }
 }
