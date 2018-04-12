@@ -98,4 +98,21 @@ interface ProcessInterface
      * @param string $error
      */
     public function errorInsertToLog($error);
+
+    /**
+     * @return bool
+     */
+    public function isStartNeeded();
+
+    /**
+     * @return bool
+     */
+    public function isStopNeeded();
+
+    /**
+     * clear parent resourses in child process
+     *
+     * @return void
+     */
+    public function clearParentResources();
 }

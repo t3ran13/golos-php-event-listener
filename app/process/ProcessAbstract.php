@@ -131,6 +131,8 @@ abstract class ProcessAbstract implements ProcessInterface
         $pid = pcntl_fork();
         if ($pid === 0) {//child process start
             try {
+//                $this->clearParentResources();
+                $process->init();
                 $process->initSignalsHandlers();
                 $process->setStatus(ProcessInterface::STATUS_RUNNING);
                 $process->start();
@@ -138,7 +140,7 @@ abstract class ProcessAbstract implements ProcessInterface
             } catch (\Exception $e) {
 
                 $msg = '"' . $e->getMessage() . '" ' . $e->getTraceAsString();
-                echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got exception ' . $msg;
+                echo PHP_EOL . ' --- process with pid=' . $process->getPid() . ' got exception ' . $msg;
                 $process->errorInsertToLog(date('Y-m-d H:i:s') . '   ' . $msg);
 
             } finally {
@@ -160,5 +162,25 @@ abstract class ProcessAbstract implements ProcessInterface
     public function errorInsertToLog($error)
     {
         $this->getDBManager()->processErrorInsertToLog($this->getId(), $error);
+    }
+
+    /**
+     * ask process to start
+     *
+     * @return bool
+     */
+    public function isStartNeeded()
+    {
+        return $this->getStatus() === ProcessInterface::STATUS_RUN;
+    }
+
+    /**
+     * ask process to stop
+     *
+     * @return bool
+     */
+    public function isStopNeeded()
+    {
+        return $this->getStatus() === ProcessInterface::STATUS_STOP;
     }
 }
