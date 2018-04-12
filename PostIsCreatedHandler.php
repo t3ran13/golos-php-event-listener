@@ -11,6 +11,8 @@ use GolosEventListener\app\handlers\HandlerInterface;
 
 class PostIsCreatedHandler extends HandlerAbstract
 {
+    protected $priority = 15;
+
     public $listenerMode = HandlerInterface::MODE_REPEAT;
 
     /**
@@ -27,6 +29,7 @@ class PostIsCreatedHandler extends HandlerAbstract
     public function initSignalsHandlers()
     {
         pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
+        pcntl_signal(SIGHUP, [$this, 'signalsHandlers']); //restart process
     }
 
     public function signalsHandlers($signo, $signinfo)
@@ -44,6 +47,8 @@ class PostIsCreatedHandler extends HandlerAbstract
 
     public function start()
     {
+        pcntl_setpriority($this->priority, getmypid());
+
         echo PHP_EOL . ' --- listener with pid=' . $this->getPid() . ' is running';
         sleep(1);
         echo PHP_EOL . ' --- listener with pid=' . $this->getPid() . ' did work';
