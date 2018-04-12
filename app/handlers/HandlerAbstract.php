@@ -16,7 +16,7 @@ abstract class HandlerAbstract implements HandlerInterface,ProcessInterface
     /** @var null|int */
     protected $pid = null;
     /** @var null|string */
-    protected $priority = 0;
+    protected $priority = 5;
     /** @var null|string */
     protected $status;
     /** @var null|string */
@@ -153,5 +153,34 @@ abstract class HandlerAbstract implements HandlerInterface,ProcessInterface
     public function errorInsertToLog($error)
     {
         $this->getDBManager()->listenerErrorInsertToLog($this->getId(), $error);
+    }
+
+    /**
+     * ask process to start
+     *
+     * @return bool
+     */
+    public function isStartNeeded()
+    {
+        return $this->getStatus() === ProcessInterface::STATUS_RUN;
+    }
+
+    /**
+     * ask process to stop
+     *
+     * @return bool
+     */
+    public function isStopNeeded()
+    {
+        return $this->getStatus() === ProcessInterface::STATUS_STOP;
+    }
+
+    /**
+     * clear parent resourses in child process
+     *
+     * @return void
+     */
+    public function clearParentResources()
+    {
     }
 }
