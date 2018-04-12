@@ -5,12 +5,12 @@ namespace GolosEventListener\app\process;
 
 
 use GolosEventListener\app\AppConfig;
-use GolosEventListener\app\db\DBManagerInterface;
+use GolosEventListener\app\db\RedisManager;
 use GolosEventListener\app\handlers\HandlerInterface;
 
 class EventsHandlersProcess extends ProcessAbstract
 {
-    protected $priority  = -9;
+    protected $priority  = 10;
     protected $isRunning = true;
     /**
      * @var null|AppConfig
@@ -21,15 +21,6 @@ class EventsHandlersProcess extends ProcessAbstract
      */
     public $processesList = [];
 
-    /**
-     * MainProcess constructor.
-     *
-     * @param DBManagerInterface $DBManager
-     */
-    public function __construct(DBManagerInterface $DBManager)
-    {
-        $this->setDBManager($DBManager);
-    }
 
     /**
      * run before process start
@@ -38,12 +29,14 @@ class EventsHandlersProcess extends ProcessAbstract
      */
     public function init()
     {
-        // TODO: Implement init() method.
+        $this->setDBManager(new RedisManager());
     }
 
     public function initSignalsHandlers()
     {
-        pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
+        pcntl_signal(SIGTERM, [$this, 'signalsHandlers']); //kill
+        pcntl_signal(SIGINT, [$this, 'signalsHandlers']); //ctrl+c
+        pcntl_signal(SIGHUP, [$this, 'signalsHandlers']); //restart process
 //        pcntl_signal(SIGCHLD, [$this, 'signalsHandlers']);
     }
 
@@ -53,6 +46,7 @@ class EventsHandlersProcess extends ProcessAbstract
             . print_r($signinfo, true);
 
         switch ($signo) {
+            case SIGINT:
             case SIGTERM:
                 $this->setStatus(ProcessInterface::STATUS_STOP);
                 foreach ($this->processesList as $process) {
@@ -73,9 +67,9 @@ class EventsHandlersProcess extends ProcessAbstract
 
     public function start()
     {
-        echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
+        pcntl_setpriority($this->priority, getmypid());
 
-        $this->init();
+        echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
 
         while ($this->isRunning) {
             echo PHP_EOL . '--- EventsHandlersProcess is running';
@@ -106,11 +100,7 @@ class EventsHandlersProcess extends ProcessAbstract
             }
 
             foreach ($this->processesList as $process) {
-                $status = $process->getStatus();
-
-                if (
-                    $status === ProcessInterface::STATUS_RUN
-                ) {
+                if ($process->isStartNeeded()) {
                     $pid = $this->forkProcess($process);
 
                     if ($pid > 0) {
@@ -119,7 +109,7 @@ class EventsHandlersProcess extends ProcessAbstract
                     } else {
                         echo PHP_EOL . date('Y.m.d H:i:s') . ' CANT RUN LISTENER ID=' . $process->getId();
                     }
-                } elseif ($status === ProcessInterface::STATUS_STOP) {
+                } elseif ($process->isStopNeeded()) {
                     echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
                     posix_kill($process->getPid(), SIGTERM);
                 }
@@ -134,32 +124,36 @@ class EventsHandlersProcess extends ProcessAbstract
 
             $pid = 1;
             while ($pid > 0) {
-                $pid = pcntl_waitpid(-1, $status, WNOHANG);
+                $pid = pcntl_waitpid(-1, $pidStatus, WUNTRACED);
                 if ($pid > 0) {
-                    echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $status;
+                    echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $pidStatus;
 
-                    if(pcntl_wifexited($status)) {
-                        $code = pcntl_wexitstatus($status);
+                    $isRestartNeeded = false;
+                    if(pcntl_wifexited($pidStatus)) {
+                        $code = pcntl_wexitstatus($pidStatus);
                         print " and returned exit code: $code\n";
                     }
                     else {
-                        print " and was unnaturally terminated\n";
+                        $isRestartNeeded = true;
+                        print " and was unnaturally terminated and will be restarted \n";
                     }
 
-                    /** @var ProcessInterface|HandlerInterface|null $process */
-                    $process = null;
-                    foreach ($this->processesList as $processObj) {
-                        if ((int)$processObj->getPid() === $pid) {
-                            $process = $processObj;
-                            break;
+                    if (!$isRestartNeeded) {
+                        //if handler need restart
+                        /** @var ProcessInterface|HandlerInterface|null $process */
+                        $process = null;
+                        foreach ($this->processesList as $processObj) {
+                            if ((int)$processObj->getPid() === $pid) {
+                                $process = $processObj;
+                                break;
+                            }
                         }
+                        $mode = $process->getListenerMode();
+                        $status = $process->getStatus();
+                        $isRestartNeeded = $status === ProcessInterface::STATUS_STOPPED
+                            && $mode === HandlerInterface::MODE_REPEAT;
                     }
-                    $mode = $process->getListenerMode();
-                    $status = $process->getStatus();
-                    if (
-                        $status === ProcessInterface::STATUS_STOPPED
-                        && $mode === HandlerInterface::MODE_REPEAT
-                    ) {
+                    if ($isRestartNeeded) {
                         $process->setStatus(ProcessInterface::STATUS_RUN);
 
                         echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
@@ -176,5 +170,16 @@ class EventsHandlersProcess extends ProcessAbstract
         $this->setStatus(ProcessInterface::STATUS_STOPPED);
 
         echo PHP_EOL . ' -- end task of ' . get_class($this);
+    }
+
+    /**
+     * clear parent resourses in child process
+     *
+     * @return void
+     */
+    public function clearParentResources()
+    {
+//        unset($this->processesList);
+//        unset($this->dbManager);
     }
 }
