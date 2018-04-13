@@ -124,7 +124,7 @@ class EventsHandlersProcess extends ProcessAbstract
 
             $pid = 1;
             while ($pid > 0) {
-                $pid = pcntl_waitpid(-1, $pidStatus, WUNTRACED);
+                $pid = pcntl_waitpid(-1, $pidStatus, WNOHANG);
                 if ($pid > 0) {
                     echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $pidStatus;
 
@@ -148,10 +148,10 @@ class EventsHandlersProcess extends ProcessAbstract
                                 break;
                             }
                         }
-                        $mode = $process->getListenerMode();
+                        $mode = $process->getMode();
                         $status = $process->getStatus();
                         $isRestartNeeded = $status === ProcessInterface::STATUS_STOPPED
-                            && $mode === HandlerInterface::MODE_REPEAT;
+                            && $mode === ProcessInterface::MODE_REPEAT;
                     }
                     if ($isRestartNeeded) {
                         $process->setStatus(ProcessInterface::STATUS_RUN);

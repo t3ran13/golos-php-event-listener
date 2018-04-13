@@ -108,6 +108,22 @@ abstract class ProcessAbstract implements ProcessInterface
     /**
      * @return null|string
      */
+    public function getMode()
+    {
+        return $this->getDBManager()->processInfoById($this->getId(), 'mode');
+    }
+
+    /**
+     * @param null|string $mode
+     */
+    public function setMode($mode)
+    {
+        $this->getDBManager()->processUpdateById($this->getId(), ['mode' => $mode]);
+    }
+
+    /**
+     * @return null|string
+     */
     public function getLastUpdateDatetime()
     {
         return $this->getDBManager()->processInfoById($this->getId(), 'last_update_datetime');

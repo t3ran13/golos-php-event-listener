@@ -1,7 +1,6 @@
 <?php
 
 
-
 namespace GolosEventListener\app\process;
 
 
@@ -10,7 +9,7 @@ use GolosEventListener\app\db\DBManagerInterface;
 
 class MainProcess extends ProcessAbstract
 {
-    protected $priority = 5;
+    protected $priority  = 5;
     protected $isRunning = true;
     /**
      * @var null|AppConfig
@@ -51,7 +50,7 @@ class MainProcess extends ProcessAbstract
             $params['last_update_datetime'] = '';
             $params['status'] = ProcessInterface::STATUS_RUN;
             $params['pid'] = 0;
-            $params['data:mode'] = $listener['handler']->listenerMode;
+            $params['mode'] = ProcessInterface::MODE_REPEAT;
 
             $n = 0;
             foreach ($listener['conditions'] as $key => $value) {
@@ -68,13 +67,25 @@ class MainProcess extends ProcessAbstract
         $this->getDBManager()->processesListClear();
 
         //register main process in db
-        $processDBId = $this->getDBManager()->processAdd($this, ['status' => ProcessInterface::STATUS_RUNNING]);
+        $processDBId = $this->getDBManager()->processAdd(
+            $this,
+            [
+                'status' => ProcessInterface::STATUS_RUNNING,
+                'mode'   => ProcessInterface::MODE_REPEAT,
+                'pid'    => getmypid()
+            ]
+        );
         $this->setId($processDBId);
-        $this->setPid(getmypid());
 
         //register processes in db
         foreach ($this->processesList as $process) {
-            $processDBId = $this->getDBManager()->processAdd($process, ['status' => ProcessInterface::STATUS_RUN]);
+            $processDBId = $this->getDBManager()->processAdd(
+                $process,
+                [
+                    'status' => ProcessInterface::STATUS_RUN,
+                    'mode'   => ProcessInterface::MODE_REPEAT
+                ]
+            );
             $process->init();
             $process->setId($processDBId);
         }
@@ -126,7 +137,7 @@ class MainProcess extends ProcessAbstract
 
         $n = 0;
         while ($this->isRunning) {
-            echo PHP_EOL . '--- ' .($n++) . ' MainProcess is running';
+            echo PHP_EOL . '--- ' . ($n++) . ' MainProcess is running';
 
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
@@ -162,7 +173,7 @@ class MainProcess extends ProcessAbstract
                     $process->setPid($pid);
 
                     echo PHP_EOL . ' --- PROCESS ID=' . $process->getId() . ' is started with pid=' . $pid;
-                } elseif($process->isStopNeeded()) {
+                } elseif ($process->isStopNeeded()) {
                     echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
                     posix_kill($process->getPid(), SIGTERM);
                 }
@@ -174,16 +185,22 @@ class MainProcess extends ProcessAbstract
             //get children signals
             $pid = 1;
             while ($pid > 0) {
-                $pid = pcntl_waitpid(-1, $pidStatus, WUNTRACED);
+                $pid = pcntl_waitpid(-1, $pidStatus, WNOHANG);
                 if ($pid > 0) {
                     echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $pidStatus;
 
-                    if(pcntl_wifexited($pidStatus)) {
+                    $isRestartNeeded = false;
+                    if (pcntl_wifexited($pidStatus)) {
                         $code = pcntl_wexitstatus($pidStatus);
                         print " and returned exit code: $code\n";
+                    } else {
+                        $isRestartNeeded = true;
+                        print " and was unnaturally terminated and will be restarted \n";
                     }
-                    else {
-                        print " and was unnaturally terminated, restart process\n";
+
+                    if (!$isRestartNeeded) {
+                        //if process need restart
+                        /** @var ProcessInterface|HandlerInterface|null $process */
                         $process = null;
                         foreach ($this->processesList as $processObj) {
                             if ((int)$processObj->getPid() === $pid) {
@@ -191,7 +208,15 @@ class MainProcess extends ProcessAbstract
                                 break;
                             }
                         }
+                        $mode = $process->getMode();
+                        $status = $process->getStatus();
+                        $isRestartNeeded = $status === ProcessInterface::STATUS_STOPPED
+                            && $mode === ProcessInterface::MODE_REPEAT;
+                    }
+                    if ($isRestartNeeded) {
                         $process->setStatus(ProcessInterface::STATUS_RUN);
+
+                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
                     }
                 }
             }

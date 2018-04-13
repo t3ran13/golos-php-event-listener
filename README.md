@@ -11,6 +11,7 @@ DB structure:
     - app:processes:last_id
     - app:processes:{id}:last_update_datetime
     - app:processes:{id}:status
+    - app:processes:{id}:mode
     - app:processes:{id}:pid
     - app:processes:{id}:handler
     - app:processes:{id}:data:last_block
@@ -18,10 +19,10 @@ DB structure:
     - app:listeners:last_id
     - app:listeners:{id}:last_update_datetime
     - app:listeners:{id}:status
+    - app:listeners:{id}:mode
     - app:listeners:{id}:pid
     - app:listeners:{id}:handler
     - app:listeners:{id}:data:last_block
-    - app:listeners:{id}:data:mode
     - app:listeners:{id}:conditions:{n}:key
     - app:listeners:{id}:conditions:{n}:value
     

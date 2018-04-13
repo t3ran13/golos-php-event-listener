@@ -6,15 +6,12 @@ namespace GolosEventListener;
 
 
 use GolosEventListener\app\handlers\HandlerAbstract;
-use GolosEventListener\app\handlers\HandlerInterface;
 use GolosEventListener\app\process\ProcessInterface;
 
 
 class PostIsCreatedHandler extends HandlerAbstract
 {
     protected $priority = 15;
-
-    public $listenerMode = HandlerInterface::MODE_REPEAT;
 
     /**
      * run before process start

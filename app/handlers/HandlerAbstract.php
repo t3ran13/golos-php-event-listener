@@ -134,17 +134,17 @@ abstract class HandlerAbstract implements HandlerInterface,ProcessInterface
     /**
      * @return null|string
      */
-    public function getListenerMode()
+    public function getMode()
     {
-        return $this->getDBManager()->listenerGetById($this->getId(), 'data:mode');
+        return $this->getDBManager()->listenerGetById($this->getId(), 'mode');
     }
 
     /**
      * @param null|string $mode
      */
-    public function setListenerMode($mode)
+    public function setMode($mode)
     {
-        $this->getDBManager()->listenerUpdateById($this->getId(), ['data:mode' => $mode]);
+        $this->getDBManager()->listenerUpdateById($this->getId(), ['mode' => $mode]);
     }
 
     /**

@@ -11,6 +11,8 @@ interface ProcessInterface
     const STATUS_RUNNING = 'running';
     const STATUS_STOP = 'stop';
     const STATUS_STOPPED = 'stopped';
+    const MODE_REPEAT = 'repeat';
+    const MODE_ONCE = 'once';
 
     /**
      * run before process start
@@ -72,6 +74,16 @@ interface ProcessInterface
      * @param null|string $status
      */
     public function setStatus($status);
+
+    /**
+     * @return null|string
+     */
+    public function getMode();
+
+    /**
+     * @param null|string $mode
+     */
+    public function setMode($mode);
 
     /**
      * @return null|string
