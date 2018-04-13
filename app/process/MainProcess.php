@@ -47,7 +47,7 @@ class MainProcess extends ProcessAbstract
         $listeners = $this->appConfig->getListenersList();
         $this->getDBManager()->listenersListClear();
         foreach ($listeners as $listener) {
-
+            $params = [];
             $params['last_update_datetime'] = '';
             $params['status'] = ProcessInterface::STATUS_RUN;
             $params['pid'] = 0;
