@@ -170,6 +170,7 @@ class RedisManager implements DBManagerInterface
                 "app:processes:{$id}:last_update_datetime" => isset($options['last_update_datetime'])
                     ? $options['last_update_datetime'] : '',
                 "app:processes:{$id}:status"               => isset($options['status']) ? $options['status'] : '',
+                "app:processes:{$id}:mode"                 => $options['mode'],
                 "app:processes:{$id}:pid"                  => isset($options['pid']) ? $options['pid'] : 0,
                 "app:processes:{$id}:handler"              => get_class($process)
             ]
