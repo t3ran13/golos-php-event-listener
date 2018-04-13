@@ -356,6 +356,43 @@ class RedisManager implements DBManagerInterface
     }
 
     /**
+     * @param int $listenerId
+     * @param int $blockN
+     * @param int $trxInBlock
+     *
+     * @return mixed status
+     */
+    public function eventDelete($listenerId, $blockN, $trxInBlock)
+    {
+        return $this->connect->del("app:events:{$listenerId}:{$blockN}:{$trxInBlock}");
+    }
+
+    /**
+     * @param int $listenerId
+     *
+     * @return int
+     */
+    public function eventsCountByListenerId($listenerId)
+    {
+        $keys = $this->connect->keys("app:events:{$listenerId}:*");
+
+        return count($keys);
+    }
+
+    /**
+     * @param int $listenerId
+     *
+     * @return array as key => trx
+     */
+    public function eventsListByListenerId($listenerId)
+    {
+        $keys = $this->connect->keys("app:events:{$listenerId}:*");
+        $values = $this->connect->mGet($keys);
+
+        return array_combine($keys, $values);
+    }
+
+    /**
      * insert error to error log list
      *
      * @param int    $id

@@ -113,6 +113,29 @@ interface DBManagerInterface
     public function eventAdd($listenerId, $trx);
 
     /**
+     * @param int $listenerId
+     * @param int $blockN
+     * @param int $trxInBlock
+     *
+     * @return mixed status
+     */
+    public function eventDelete($listenerId, $blockN, $trxInBlock);
+
+    /**
+     * @param int $listenerId
+     *
+     * @return int
+     */
+    public function eventsCountByListenerId($listenerId);
+
+    /**
+     * @param int $listenerId
+     *
+     * @return array as key => trx
+     */
+    public function eventsListByListenerId($listenerId);
+
+    /**
      * insert error to error log list
      *
      * @param int    $id
