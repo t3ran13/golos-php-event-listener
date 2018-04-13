@@ -7,6 +7,7 @@ namespace GolosEventListener;
 
 use GolosEventListener\app\handlers\HandlerAbstract;
 use GolosEventListener\app\handlers\HandlerInterface;
+use GolosEventListener\app\process\ProcessInterface;
 
 
 class PostIsCreatedHandler extends HandlerAbstract
@@ -49,8 +50,29 @@ class PostIsCreatedHandler extends HandlerAbstract
     {
         pcntl_setpriority($this->priority, getmypid());
 
-        echo PHP_EOL . ' --- listener with pid=' . $this->getPid() . ' is running';
-        sleep(1);
-        echo PHP_EOL . ' --- listener with pid=' . $this->getPid() . ' did work';
+        $listenerId = $this->getId();
+        echo PHP_EOL . ' --- listener with id/pid=' . $listenerId . '/' . $this->getPid() . ' is running';
+        $events = $this->getDBManager()->eventsListByListenerId($listenerId);
+        echo PHP_EOL . ' --- listener with id=' . $listenerId . ' have total events=' . count($events);
+
+        foreach ($events as $key => $event) {
+            $ids = str_replace("app:events:{$listenerId}:",'', $key);
+            list($blockN, $trxInBlock) = explode(':', $ids);
+            $this->getDBManager()->eventDelete($listenerId, $blockN, $trxInBlock);
+            echo PHP_EOL . ' --- listener with id=' . $listenerId . ' handle and deleted event with key=' . $key;
+        }
+
+        echo PHP_EOL . ' --- listener with id/pid=' . $listenerId . '/' . $this->getPid() . ' did work';
+    }
+
+    /**
+     * ask process to start
+     *
+     * @return bool
+     */
+    public function isStartNeeded()
+    {
+        return $this->getStatus() === ProcessInterface::STATUS_RUN
+            && $this->getDBManager()->eventsCountByListenerId($this->getId()) > 0;
     }
 }
