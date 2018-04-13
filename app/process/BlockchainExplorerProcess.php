@@ -8,6 +8,7 @@ namespace GolosEventListener\app\process;
 
 use GolosEventListener\app\db\RedisManager;
 use GrapheneNodeClient\Commands\CommandQueryData;
+use GrapheneNodeClient\Commands\Single\GetOpsInBlock;
 use GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector;
 
 class BlockchainExplorerProcess extends ProcessAbstract
@@ -105,8 +106,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
                 }
             }
 
-//            echo PHP_EOL . ' content of block ' . $blockNumber . ': '
-//                . print_r($data, true);
+            //echo PHP_EOL . ' found events ' . count($saveForHandle);
 
             foreach ($saveForHandle as $listenerId => $trxs) {
                 foreach ($trxs as $trx) {
