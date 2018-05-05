@@ -6,6 +6,8 @@ namespace GolosPhpEventListener;
 
 
 use GolosPhpEventListener\app\AppConfig;
+use GolosPhpEventListener\app\process\BlockchainExplorerProcess;
+use GolosPhpEventListener\app\process\EventsHandlersProcess;
 use GolosPhpEventListener\app\process\MainProcess;
 
 
@@ -27,6 +29,10 @@ $mainProcess = new MainProcess(
     $appConfig,
     New RedisManager()
 );
+$mainProcess->processesList = [
+    new BlockchainExplorerProcess('GolosPhpEventListener\RedisManager'),
+    new EventsHandlersProcess('GolosPhpEventListener\RedisManager')
+];
 $mainProcess->start();
 
 echo PHP_EOL . PHP_EOL;

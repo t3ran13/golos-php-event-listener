@@ -16,15 +16,18 @@ class BlockchainExplorerProcess extends ProcessAbstract
     protected $lastBlock = 14745442;
     protected $priority = 10;
     protected $isRunning = true;
+    protected $dbManagerClassName = true;
+
 
     /**
      * MainProcess constructor.
      *
-     * @param DBManagerInterface $DBManager
+     * @param string $dbManagerClassName
      */
-    public function __construct(DBManagerInterface $DBManager)
+    public function __construct($dbManagerClassName = null)
     {
-        $this->setDBManager($DBManager);
+        $this->dbManagerClassName = $dbManagerClassName === null
+            ? 'GolosPhpEventListener\app\db\RedisManager' : $dbManagerClassName;
     }
 
     /**
@@ -34,7 +37,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
      */
     public function init()
     {
-        $this->setDBManager(new RedisManager());
+        $this->setDBManager(new $this->dbManagerClassName());
     }
 
     public function initSignalsHandlers()

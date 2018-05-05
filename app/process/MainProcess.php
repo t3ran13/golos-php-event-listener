@@ -30,11 +30,6 @@ class MainProcess extends ProcessAbstract
     {
         $this->appConfig = $appConfig;
         $this->setDBManager($DBManager);
-
-        $this->processesList = [
-            new BlockchainExplorerProcess($DBManager),
-            new EventsHandlersProcess($DBManager)
-        ];
     }
 
     /**

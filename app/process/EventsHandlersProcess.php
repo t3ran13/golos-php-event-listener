@@ -20,7 +20,19 @@ class EventsHandlersProcess extends ProcessAbstract
      * @var ProcessInterface[]|HandlerInterface[]
      */
     public $processesList = [];
+    protected $dbManagerClassName = true;
 
+
+    /**
+     * MainProcess constructor.
+     *
+     * @param string $dbManagerClassName
+     */
+    public function __construct($dbManagerClassName = null)
+    {
+        $this->dbManagerClassName = $dbManagerClassName === null
+            ? 'GolosPhpEventListener\app\db\RedisManager' : $dbManagerClassName;
+    }
 
     /**
      * run before process start
@@ -29,7 +41,7 @@ class EventsHandlersProcess extends ProcessAbstract
      */
     public function init()
     {
-        $this->setDBManager(new RedisManager());
+        $this->setDBManager(new $this->dbManagerClassName());
     }
 
     public function initSignalsHandlers()
