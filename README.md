@@ -1,4 +1,4 @@
-# golos-event-listener
+# golos-php-event-listener
 PHP event listener for STEEM/GOLOS blockchains
 
 
