@@ -2,7 +2,7 @@
 
 
 
-namespace GolosPhpEventListener;
+namespace MyApp;
 
 
 use GolosPhpEventListener\app\handlers\HandlerAbstract;

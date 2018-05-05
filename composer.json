@@ -1,21 +1,5 @@
 {
-    "name": "t3ran13/golos-php-event-listener",
-    "description": "PHP event listener for STEEM/GOLOS blockchain",
-    "keywords": ["event listener", "Steemit", "Golos"],
-    "homepage": "https://github.com/t3ran13/golos-php-event-listener",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Tkachew",
-            "email": "7tkachew@gmail.com"
-        }
-    ],
     "require": {
-        "php": "^7.0",
-        "t3ran13/php-graphene-node-client": "^4",
-        "predis/predis": "1.1.1"
-    },
-    "autoload": {
-        "psr-4": { "GolosPhpEventListener\\": "" }
+        "t3ran13/golos-php-event-listener": "master-dev"
     }
 }

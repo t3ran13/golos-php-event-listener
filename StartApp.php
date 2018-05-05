@@ -2,7 +2,7 @@
 
 
 
-namespace GolosPhpEventListener;
+namespace MyApp;
 
 
 use GolosPhpEventListener\app\AppConfig;
@@ -30,8 +30,8 @@ $mainProcess = new MainProcess(
     New RedisManager()
 );
 $mainProcess->processesList = [
-    new BlockchainExplorerProcess('GolosPhpEventListener\RedisManager'),
-    new EventsHandlersProcess('GolosPhpEventListener\RedisManager')
+    new BlockchainExplorerProcess('MyApp\RedisManager'),
+    new EventsHandlersProcess('MyApp\RedisManager')
 ];
 $mainProcess->start();
 
