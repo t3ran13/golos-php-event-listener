@@ -1,12 +1,12 @@
 <?php
 
 
-namespace GolosEventListener\app\process;
+namespace GolosPhpEventListener\app\process;
 
 
-use GolosEventListener\app\AppConfig;
-use GolosEventListener\app\db\RedisManager;
-use GolosEventListener\app\handlers\HandlerInterface;
+use GolosPhpEventListener\app\AppConfig;
+use GolosPhpEventListener\app\db\RedisManager;
+use GolosPhpEventListener\app\handlers\HandlerInterface;
 
 class EventsHandlersProcess extends ProcessAbstract
 {
@@ -69,10 +69,10 @@ class EventsHandlersProcess extends ProcessAbstract
     {
         pcntl_setpriority($this->priority, getmypid());
 
-        echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
+        echo PHP_EOL . get_class($this) . ' is started';
 
         while ($this->isRunning) {
-            echo PHP_EOL . '--- EventsHandlersProcess is running';
+            echo PHP_EOL . 'EventsHandlersProcess is running';
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
 

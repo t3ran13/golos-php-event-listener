@@ -2,11 +2,11 @@
 
 
 
-namespace GolosEventListener;
+namespace GolosPhpEventListener;
 
 
-use GolosEventListener\app\AppConfig;
-use GolosEventListener\app\process\MainProcess;
+use GolosPhpEventListener\app\AppConfig;
+use GolosPhpEventListener\app\process\MainProcess;
 
 
 ini_set('display_errors', 1);

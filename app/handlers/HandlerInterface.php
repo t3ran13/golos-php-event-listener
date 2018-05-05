@@ -2,7 +2,7 @@
 
 
 
-namespace GolosEventListener\app\handlers;
+namespace GolosPhpEventListener\app\handlers;
 
 
 

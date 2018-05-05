@@ -2,11 +2,11 @@
 
 
 
-namespace GolosEventListener\app\process;
+namespace GolosPhpEventListener\app\process;
 
 
 
-use GolosEventListener\app\db\RedisManager;
+use GolosPhpEventListener\app\db\DBManagerInterface;
 use GrapheneNodeClient\Commands\CommandQueryData;
 use GrapheneNodeClient\Commands\Single\GetOpsInBlock;
 use GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector;
@@ -16,6 +16,16 @@ class BlockchainExplorerProcess extends ProcessAbstract
     protected $lastBlock = 14745442;
     protected $priority = 10;
     protected $isRunning = true;
+
+    /**
+     * MainProcess constructor.
+     *
+     * @param DBManagerInterface $DBManager
+     */
+    public function __construct(DBManagerInterface $DBManager)
+    {
+        $this->setDBManager($DBManager);
+    }
 
     /**
      * run before process start

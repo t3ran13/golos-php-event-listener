@@ -1,11 +1,11 @@
 <?php
 
 
-namespace GolosEventListener\app\db;
+namespace GolosPhpEventListener\app\db;
 
 
-use GolosEventListener\app\handlers\HandlerInterface;
-use GolosEventListener\app\process\ProcessInterface;
+use GolosPhpEventListener\app\handlers\HandlerInterface;
+use GolosPhpEventListener\app\process\ProcessInterface;
 
 class RedisManager implements DBManagerInterface
 {

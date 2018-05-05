@@ -2,11 +2,11 @@
 
 
 
-namespace GolosEventListener;
+namespace GolosPhpEventListener;
 
 
-use GolosEventListener\app\handlers\HandlerAbstract;
-use GolosEventListener\app\process\ProcessInterface;
+use GolosPhpEventListener\app\handlers\HandlerAbstract;
+use GolosPhpEventListener\app\process\ProcessInterface;
 
 
 class PostIsCreatedHandler extends HandlerAbstract

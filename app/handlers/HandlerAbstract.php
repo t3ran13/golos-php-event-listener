@@ -1,11 +1,11 @@
 <?php
 
 
-namespace GolosEventListener\app\handlers;
+namespace GolosPhpEventListener\app\handlers;
 
 
-use GolosEventListener\app\db\DBManagerInterface;
-use GolosEventListener\app\process\ProcessInterface;
+use GolosPhpEventListener\app\db\DBManagerInterface;
+use GolosPhpEventListener\app\process\ProcessInterface;
 
 abstract class HandlerAbstract implements HandlerInterface,ProcessInterface
 {
@@ -25,7 +25,7 @@ abstract class HandlerAbstract implements HandlerInterface,ProcessInterface
     /**
      * @param DBManagerInterface $dbManager
      */
-    public function setDBManager($dbManager)
+    public function setDBManager(DBManagerInterface $dbManager)
     {
         $this->dbManager = $dbManager;
     }

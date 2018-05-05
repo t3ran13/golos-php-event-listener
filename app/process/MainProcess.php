@@ -1,11 +1,11 @@
 <?php
 
 
-namespace GolosEventListener\app\process;
+namespace GolosPhpEventListener\app\process;
 
 
-use GolosEventListener\app\AppConfig;
-use GolosEventListener\app\db\DBManagerInterface;
+use GolosPhpEventListener\app\AppConfig;
+use GolosPhpEventListener\app\db\DBManagerInterface;
 
 class MainProcess extends ProcessAbstract
 {
@@ -131,13 +131,13 @@ class MainProcess extends ProcessAbstract
     {
         pcntl_setpriority($this->priority, getmypid());
 
-        echo PHP_EOL . ' --- ' . get_class($this) . ' is started';
+        echo PHP_EOL . get_class($this) . ' is started';
         $this->init();
 //        $dbClass = get_class($this->getDBManager());
 
         $n = 0;
         while ($this->isRunning) {
-            echo PHP_EOL . '--- ' . ($n++) . ' MainProcess is running';
+            echo PHP_EOL . ($n++) . ' MainProcess is running';
 
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 

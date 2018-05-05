@@ -2,9 +2,9 @@
 
 
 
-namespace GolosEventListener;
+namespace GolosPhpEventListener;
 
 
-class RedisManager extends \GolosEventListener\app\db\RedisManager
+class RedisManager extends \GolosPhpEventListener\app\db\RedisManager
 {
 }

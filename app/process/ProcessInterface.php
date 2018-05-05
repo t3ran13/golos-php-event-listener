@@ -2,8 +2,10 @@
 
 
 
-namespace GolosEventListener\app\process;
+namespace GolosPhpEventListener\app\process;
 
+
+use GolosPhpEventListener\app\db\DBManagerInterface;
 
 interface ProcessInterface
 {
@@ -24,7 +26,7 @@ interface ProcessInterface
     /**
      * @param DBManagerInterface $dbManager
      */
-    public function setDBManager($dbManager);
+    public function setDBManager(DBManagerInterface $dbManager);
 
     /**
      * @return null|DBManagerInterface

@@ -1,10 +1,10 @@
 <?php
 
 
-namespace GolosEventListener\app;
+namespace GolosPhpEventListener\app;
 
 
-use GolosEventListener\app\handlers\HandlerInterface;
+use GolosPhpEventListener\app\handlers\HandlerInterface;
 
 class AppConfig
 {
