@@ -65,8 +65,8 @@ class BlockchainExplorerProcess extends ProcessAbstract
 //        pcntl_setpriority($this->priority);
 //        echo PHP_EOL . ' BlockchainExplorer is running, info '
 //            . print_r($this->getDBManager()->processInfoById($this->getId()), true);
-        $settings = $this->prepareSettings();
-        $scanBlock = $settings['last_block'] + 1;
+
+        $this->initLastBlock();
 
         $n = 1;
         while ($this->isRunning) {
@@ -78,11 +78,12 @@ class BlockchainExplorerProcess extends ProcessAbstract
                 . print_r($info, true);
 
 
+            $scanBlock = $this->lastBlock + 1;
             $this->runBlockScanner($scanBlock);
 
             $this->getDBManager()->processUpdateById(
                 $this->getId(),
-                ['data:last_block' => $scanBlock++]
+                ['data:last_block' => $scanBlock]
             );
 
 
@@ -137,23 +138,28 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
     }
 
-    public function prepareSettings()
+    public function initLastBlock()
     {
-        $startBlock = empty($this->lastBlock) ? 0 : $this->lastBlock;
-
         $info = $this->getDBManager()->processInfoById($this->getId());
         if (
             !isset($info['data']['last_block'])
-            || isset($info['data']['last_block']) < $startBlock
+            || isset($info['data']['last_block']) < $this->lastBlock
         ) {
             $this->getDBManager()->processUpdateById(
                 $this->getId(),
-                ['data:last_block' => $startBlock]
+                ['data:last_block' => $this->lastBlock]
             );
-            $info['data']['last_block'] = $startBlock;
+        } else {
+            $this->lastBlock = $info['data']['last_block'];
         }
+    }
 
-        return $info['data'];
+    /**
+     * @param int $blockN
+     */
+    public function setLastBlock($blockN)
+    {
+        $this->lastBlock = $blockN;
     }
 
 
