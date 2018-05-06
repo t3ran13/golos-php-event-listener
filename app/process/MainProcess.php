@@ -162,7 +162,7 @@ class MainProcess extends ProcessAbstract
 
             //handle process statuses
             foreach ($this->processesList as $process) {
-                echo PHP_EOL . ' --- !!!!!' . ' pr=' . get_class($process) . ' st=' . $process->getStatus();
+//                echo PHP_EOL . ' --- !!!!!' . ' pr=' . get_class($process) . ' st=' . $process->getStatus();
                 if ($process->isStartNeeded()) {
                     $pid = $this->forkProcess($process);
                     $process->setPid($pid);
