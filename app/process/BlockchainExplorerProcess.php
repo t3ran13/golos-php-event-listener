@@ -85,6 +85,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
                 $this->getId(),
                 ['data:last_block' => $scanBlock]
             );
+            $this->lastBlock = $scanBlock;
 
 
             pcntl_signal_dispatch();
