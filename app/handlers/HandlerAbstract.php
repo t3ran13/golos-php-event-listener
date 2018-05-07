@@ -23,6 +23,16 @@ abstract class HandlerAbstract implements HandlerInterface,ProcessInterface
     protected $lastUpdateDatetime;
 
     /**
+     * MainProcess constructor.
+     *
+     * @param string $dbManagerClassName
+     */
+    public function __construct($dbManagerClassName = null)
+    {
+        $this->setId(($this->priority + 20) . substr(md5(get_class($this)), 0, 7));
+    }
+
+    /**
      * @param DBManagerInterface $dbManager
      */
     public function setDBManager(DBManagerInterface $dbManager)
