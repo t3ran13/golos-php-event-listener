@@ -8,6 +8,7 @@ namespace GolosPhpEventListener\app\process;
 
 use GolosPhpEventListener\app\db\DBManagerInterface;
 use GrapheneNodeClient\Commands\CommandQueryData;
+use GrapheneNodeClient\Commands\Single\GetDynamicGlobalPropertiesCommand;
 use GrapheneNodeClient\Commands\Single\GetOpsInBlock;
 use GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector;
 
@@ -67,15 +68,15 @@ class BlockchainExplorerProcess extends ProcessAbstract
 //            . print_r($this->getDBManager()->processInfoById($this->getId()), true);
 
         $this->initLastBlock();
+        $currentBlockNumber = $this->getCurrentBlockNumber();
 
-        $n = 1;
-        while ($this->isRunning) {
+        while ($this->isRunning && $this->lastBlock + 1 <= $currentBlockNumber) {
 
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
             $info = $this->getDBManager()->processInfoById($this->getId());
-            echo PHP_EOL . ($n++) . ' BlockchainExplorer is running, info '
-                . print_r($info, true);
+            echo PHP_EOL . ' BlockchainExplorer is running, scan block '
+                . print_r($this->lastBlock + 1, true);
 
 
             $scanBlock = $this->lastBlock + 1;
@@ -89,7 +90,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
 
             pcntl_signal_dispatch();
-            sleep(3);
+//            sleep(3);
         }
     }
 
@@ -217,6 +218,27 @@ class BlockchainExplorerProcess extends ProcessAbstract
      */
     public function clearParentResources()
     {
+    }
+
+    public function getCurrentBlockNumber()
+    {
+        try {
+            $connector = new GolosWSConnector();
+
+            $commandQuery = new CommandQueryData();
+            $command = new GetDynamicGlobalPropertiesCommand($connector);
+            $data = $command->execute(
+                $commandQuery,
+                'result'
+            );
+
+            $currentBlockNumber = $data['head_block_number'];
+
+        } catch (\Exception $e) {
+            throw $e;
+        }
+
+        return $currentBlockNumber;
     }
 
 }
