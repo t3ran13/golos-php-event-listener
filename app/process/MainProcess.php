@@ -37,7 +37,6 @@ class MainProcess extends ProcessAbstract
      */
     public function init()
     {
-        $this->getDBManager()->eventsListClear();
         $listeners = $this->appConfig->getListenersList();
         $this->getDBManager()->listenersListClear();
         foreach ($listeners as $listener) {
@@ -59,7 +58,7 @@ class MainProcess extends ProcessAbstract
         $this->initSignalsHandlers();
 
 
-        $this->getDBManager()->processesListClear();
+
 
         //register main process in db
         $processDBId = $this->getDBManager()->processAdd(
@@ -230,5 +229,16 @@ class MainProcess extends ProcessAbstract
 //        unset($this->appConfig);
 //        unset($this->processesList);
 //        unset($this->dbManager);
+    }
+
+    /**
+     * clear proccess and eventz data from db
+     *
+     * @return void
+     */
+    public function ClearAllData()
+    {
+        $this->getDBManager()->processesListClear();
+        $this->getDBManager()->eventsListClear();
     }
 }
