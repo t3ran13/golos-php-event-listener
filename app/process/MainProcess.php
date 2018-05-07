@@ -236,7 +236,7 @@ class MainProcess extends ProcessAbstract
      *
      * @return void
      */
-    public function ClearAllData()
+    public function clearAllData()
     {
         $this->getDBManager()->processesListClear();
         $this->getDBManager()->eventsListClear();
