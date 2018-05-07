@@ -193,8 +193,8 @@ class MainProcess extends ProcessAbstract
                         print " and was unnaturally terminated and will be restarted \n";
                     }
 
-                    if (!$isRestartNeeded) {
-                        //if process need restart
+                    //if process need restart
+                    if ($isRestartNeeded) {
                         /** @var ProcessInterface|HandlerInterface|null $process */
                         $process = null;
                         foreach ($this->processesList as $processObj) {
@@ -203,12 +203,6 @@ class MainProcess extends ProcessAbstract
                                 break;
                             }
                         }
-                        $mode = $process->getMode();
-                        $status = $process->getStatus();
-                        $isRestartNeeded = $status === ProcessInterface::STATUS_STOPPED
-                            && $mode === ProcessInterface::MODE_REPEAT;
-                    }
-                    if ($isRestartNeeded) {
                         $process->setStatus(ProcessInterface::STATUS_RUN);
 
                         echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;

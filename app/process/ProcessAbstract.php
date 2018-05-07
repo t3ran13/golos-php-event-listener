@@ -187,7 +187,12 @@ abstract class ProcessAbstract implements ProcessInterface
      */
     public function isStartNeeded()
     {
-        return $this->getStatus() === ProcessInterface::STATUS_RUN;
+        $status = $this->getStatus();
+        return $status === ProcessInterface::STATUS_RUN
+            || (
+                $status === ProcessInterface::STATUS_STOPPED
+                && $this->getMode() === ProcessInterface::MODE_REPEAT
+            );
     }
 
     /**
