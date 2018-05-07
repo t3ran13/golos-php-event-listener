@@ -125,7 +125,7 @@ class MainProcess extends ProcessAbstract
     {
         pcntl_setpriority($this->priority, getmypid());
 
-        echo PHP_EOL . get_class($this) . ' is started';
+//        echo PHP_EOL . get_class($this) . ' is started';
         $this->init();
 //        $dbClass = get_class($this->getDBManager());
 
@@ -154,7 +154,7 @@ class MainProcess extends ProcessAbstract
                     $processObj->setId($processId);
                     $this->processesList[] = $processObj;
 
-                    echo PHP_EOL . ' --- ' . get_class($processObj) . ' is init';
+//                    echo PHP_EOL . ' --- ' . get_class($processObj) . ' is init';
                 }
             }
 
