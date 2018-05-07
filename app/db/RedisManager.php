@@ -51,23 +51,20 @@ class RedisManager implements DBManagerInterface
     /**
      * add new event listener
      *
-     * @param HandlerInterface $handler
-     * @param array            $options
+     * @param int   $id
+     * @param array $options
      *
      * @return void
      */
-    public function listenerAdd(HandlerInterface $handler, $options)
+    public function listenerAdd($id, $options)
     {
-        $id = $this->connect->incr('app:listeners:last_id');
-
-        $prefix = "app:listeners:{$id}:";
-        $data[$prefix . 'handler'] = get_class($handler);
-
-        foreach ($options as $key => $value) {
-            $data[$prefix . $key] = $value;
+        $prefix = "app:listeners:{$id}";
+        $set = [];
+        foreach ($options as $key => $val) {
+            $set["{$prefix}:{$key}"] = $val;
         }
 
-        return $this->connect->mset($data);
+        return $this->connect->mset($set);
     }
 
     /**
@@ -96,9 +93,6 @@ class RedisManager implements DBManagerInterface
 
         $data = [];
         foreach ($keys as $n => $keyFull) {
-            if ($keyFull === 'app:listeners:last_id') {
-                continue;
-            }
             $shortKey = str_replace("app:listeners:", '', $keyFull);
             $data = $this->setArrayElementByKey(
                 $data,
@@ -156,27 +150,19 @@ class RedisManager implements DBManagerInterface
     }
 
     /**
-     * @param ProcessInterface $process
-     * @param array            $options
+     * @param int   $id
+     * @param array $options
      *
      * @return int process id in db
      */
-    public function processAdd(ProcessInterface $process, $options)
+    public function processAdd($id, $options)
     {
-        $id = $this->connect->incr('app:processes:last_id');
+        $set = [];
+        foreach ($options as $key => $val) {
+            $set["app:processes:{$id}:{$key}"] = $val;
+        }
 
-        $status = $this->connect->mset(
-            [
-                "app:processes:{$id}:last_update_datetime" => isset($options['last_update_datetime'])
-                    ? $options['last_update_datetime'] : '',
-                "app:processes:{$id}:status"               => isset($options['status']) ? $options['status'] : '',
-                "app:processes:{$id}:mode"                 => $options['mode'],
-                "app:processes:{$id}:pid"                  => isset($options['pid']) ? $options['pid'] : 0,
-                "app:processes:{$id}:handler"              => get_class($process)
-            ]
-        );
-
-        return $status ? $id : null;
+        return $this->connect->mset($set);
     }
 
     /**
@@ -250,9 +236,6 @@ class RedisManager implements DBManagerInterface
 
         $data = [];
         foreach ($keys as $n => $keyFull) {
-            if ($keyFull === 'app:processes:last_id') {
-                continue;
-            }
             $shortKey = str_replace("app:processes:", '', $keyFull);
             $data = $this->setArrayElementByKey(
                 $data,

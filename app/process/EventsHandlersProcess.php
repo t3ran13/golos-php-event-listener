@@ -30,6 +30,7 @@ class EventsHandlersProcess extends ProcessAbstract
      */
     public function __construct($dbManagerClassName = null)
     {
+        parent::__construct();
         $this->dbManagerClassName = $dbManagerClassName === null
             ? 'GolosPhpEventListener\app\db\RedisManager' : $dbManagerClassName;
     }
@@ -104,7 +105,6 @@ class EventsHandlersProcess extends ProcessAbstract
                 if ($processObj === null) {
                     $processObj = new $listenerInfo['handler']();
                     $processObj->init();
-                    $processObj->setId($listenerId);
                     $this->processesList[] = $processObj;
 
                     echo PHP_EOL . ' --- ' . get_class($processObj) . ' is init';

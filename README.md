@@ -8,7 +8,6 @@ PHP event listener for STEEM/GOLOS blockchains
 
 DB structure:
 - DB0
-    - app:processes:last_id
     - app:processes:{id}:last_update_datetime
     - app:processes:{id}:status
     - app:processes:{id}:mode
@@ -16,7 +15,6 @@ DB structure:
     - app:processes:{id}:handler
     - app:processes:{id}:data:last_block
     
-    - app:listeners:last_id
     - app:listeners:{id}:last_update_datetime
     - app:listeners:{id}:status
     - app:listeners:{id}:mode

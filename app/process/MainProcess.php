@@ -6,6 +6,7 @@ namespace GolosPhpEventListener\app\process;
 
 use GolosPhpEventListener\app\AppConfig;
 use GolosPhpEventListener\app\db\DBManagerInterface;
+use GolosPhpEventListener\app\handlers\HandlerInterface;
 
 class MainProcess extends ProcessAbstract
 {
@@ -28,6 +29,7 @@ class MainProcess extends ProcessAbstract
      */
     public function __construct(AppConfig $appConfig, DBManagerInterface $DBManager)
     {
+        parent::__construct();
         $this->appConfig = $appConfig;
         $this->setDBManager($DBManager);
     }
@@ -40,11 +42,13 @@ class MainProcess extends ProcessAbstract
         $listeners = $this->appConfig->getListenersList();
         $this->getDBManager()->listenersListClear();
         foreach ($listeners as $listener) {
+            /** @var HandlerInterface $listener['handler'] */
             $params = [];
             $params['last_update_datetime'] = '';
             $params['status'] = ProcessInterface::STATUS_RUN;
             $params['pid'] = 0;
             $params['mode'] = ProcessInterface::MODE_REPEAT;
+            $params['handler'] = get_class($listener['handler']);
 
             $n = 0;
             foreach ($listener['conditions'] as $key => $value) {
@@ -52,36 +56,34 @@ class MainProcess extends ProcessAbstract
                 $params['conditions:' . $n . ':value'] = $value;
                 $n++;
             }
-            $this->getDBManager()->listenerAdd($listener['handler'], $params);
+            $this->getDBManager()->listenerAdd($listener['handler']->getId(), $params);
         }
 
         $this->initSignalsHandlers();
 
 
-
-
         //register main process in db
-        $processDBId = $this->getDBManager()->processAdd(
-            $this,
+        $this->getDBManager()->processAdd(
+            $this->getId(),
             [
-                'status' => ProcessInterface::STATUS_RUNNING,
-                'mode'   => ProcessInterface::MODE_REPEAT,
-                'pid'    => getmypid()
+                'status'  => ProcessInterface::STATUS_RUNNING,
+                'mode'    => ProcessInterface::MODE_REPEAT,
+                'pid'     => getmypid(),
+                'handler' => get_class($this)
             ]
         );
-        $this->setId($processDBId);
 
         //register processes in db
         foreach ($this->processesList as $process) {
-            $processDBId = $this->getDBManager()->processAdd(
-                $process,
+            $this->getDBManager()->processAdd(
+                $process->getId(),
                 [
-                    'status' => ProcessInterface::STATUS_RUN,
-                    'mode'   => ProcessInterface::MODE_REPEAT
+                    'status'  => ProcessInterface::STATUS_RUN,
+                    'mode'    => ProcessInterface::MODE_REPEAT,
+                    'handler' => get_class($process)
                 ]
             );
             $process->init();
-            $process->setId($processDBId);
         }
 
         //add main process to processes list
@@ -149,9 +151,8 @@ class MainProcess extends ProcessAbstract
                 }
 
                 if ($processObj === null) {
-                    $processObj = new $lastProcessInfo['handler']($this->getDBManager());
+                    $processObj = new $lastProcessInfo['handler']();
                     $processObj->init();
-                    $processObj->setId($processId);
                     $this->processesList[] = $processObj;
 
 //                    echo PHP_EOL . ' --- ' . get_class($processObj) . ' is init';

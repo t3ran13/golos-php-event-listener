@@ -27,6 +27,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
      */
     public function __construct($dbManagerClassName = null)
     {
+        parent::__construct();
         $this->dbManagerClassName = $dbManagerClassName === null
             ? 'GolosPhpEventListener\app\db\RedisManager' : $dbManagerClassName;
     }
