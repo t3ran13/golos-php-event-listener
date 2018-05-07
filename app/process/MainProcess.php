@@ -129,9 +129,8 @@ class MainProcess extends ProcessAbstract
         $this->init();
 //        $dbClass = get_class($this->getDBManager());
 
-        $n = 0;
         while ($this->isRunning) {
-            echo PHP_EOL . ($n++) . ' MainProcess is running';
+            echo PHP_EOL . ' MainProcess is running';
 
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
