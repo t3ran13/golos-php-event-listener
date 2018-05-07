@@ -16,7 +16,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
     protected $lastBlock = 14745442;
     protected $priority = 10;
     protected $isRunning = true;
-    protected $dbManagerClassName = true;
+    protected $dbManagerClassName;
 
 
     /**

@@ -20,7 +20,7 @@ class EventsHandlersProcess extends ProcessAbstract
      * @var ProcessInterface[]|HandlerInterface[]
      */
     public $processesList = [];
-    protected $dbManagerClassName = true;
+    protected $dbManagerClassName;
 
 
     /**
