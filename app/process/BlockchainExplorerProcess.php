@@ -145,14 +145,14 @@ class BlockchainExplorerProcess extends ProcessAbstract
         $info = $this->getDBManager()->processInfoById($this->getId());
         if (
             !isset($info['data']['last_block'])
-            || isset($info['data']['last_block']) < $this->lastBlock
+            || (integer)$info['data']['last_block'] < $this->lastBlock
         ) {
             $this->getDBManager()->processUpdateById(
                 $this->getId(),
                 ['data:last_block' => $this->lastBlock]
             );
         } else {
-            $this->lastBlock = $info['data']['last_block'];
+            $this->lastBlock = (integer)$info['data']['last_block'];
         }
     }
 
