@@ -371,6 +371,9 @@ class RedisManager implements DBManagerInterface
     public function eventsListByListenerId($listenerId)
     {
         $keys = $this->connect->keys("app:events:{$listenerId}:*");
+        if (count($keys) === 0) {
+            return [];
+        }
         $values = $this->connect->mGet($keys);
 
         return array_combine($keys, $values);
