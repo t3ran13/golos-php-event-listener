@@ -98,7 +98,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
         while ($this->isRunning) {
             //if last block = current, then wait 1 second, update curretn block and try again
-            if ($this->lastBlock + 1 <= $currentBlockNumber) {
+            if ($this->lastBlock + 1 > $currentBlockNumber) {
                 sleep(1);
                 $currentBlockNumber = $this->getCurrentBlockNumber();
                 continue;
