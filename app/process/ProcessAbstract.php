@@ -22,11 +22,9 @@ abstract class ProcessAbstract implements ProcessInterface
     protected $lastUpdateDatetime;
 
     /**
-     * MainProcess constructor.
-     *
-     * @param string $dbManagerClassName
+     * ProcessAbstract constructor.
      */
-    public function __construct($dbManagerClassName = null)
+    public function __construct()
     {
         $this->setId(($this->priority + 20) . substr(md5(get_class($this)), 0, 7));
     }
