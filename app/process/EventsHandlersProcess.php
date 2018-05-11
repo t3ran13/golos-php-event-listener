@@ -55,8 +55,8 @@ class EventsHandlersProcess extends ProcessAbstract
 
     public function signalsHandlers($signo, $signinfo)
     {
-//        echo PHP_EOL . ' --- process with pid=' . $this->getPid() . ' got signal=' . $signo . ' and signinfo='
-//            . print_r($signinfo, true);
+        echo PHP_EOL . ' --- process with id=' . $this->getId() . ' got signal=' . $signo . ' and signinfo='
+            . print_r($signinfo, true);
 
         switch ($signo) {
             case SIGINT:
@@ -66,7 +66,7 @@ class EventsHandlersProcess extends ProcessAbstract
                     if (in_array($process->getStatus(), ['run', 'running'])) {
                         $processPid = $process->getPid();
                         posix_kill($processPid, SIGTERM);
-                        //echo PHP_EOL . ' --- to process with id=' . $processPid . ' sent signal ' . SIGTERM;
+                        echo PHP_EOL . ' --- to process with id=' . $process->getId() . ' sent signal ' . SIGTERM;
 //                        pcntl_waitpid($pid, $status);
 //                        echo PHP_EOL . ' --- from process with id=' . $process->getPid() . ' got signal ' . $status;
                     }
