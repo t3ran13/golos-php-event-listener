@@ -125,7 +125,7 @@ class MainProcess extends ProcessAbstract
 
     public function start()
     {
-        echo PHP_EOL . ' MainProcess is started';
+        echo PHP_EOL . date('Y.m.d H:i:s') . ' MainProcess is started';
         pcntl_setpriority($this->priority, getmypid());
 
 //        echo PHP_EOL . get_class($this) . ' is started';
@@ -217,7 +217,7 @@ class MainProcess extends ProcessAbstract
         // get listeners list
         $this->setStatus(ProcessInterface::STATUS_STOPPED);
 
-        echo PHP_EOL . ' -- end task of ' . get_class($this);
+        echo PHP_EOL . date('Y.m.d H:i:s') . ' end task of ' . get_class($this);
     }
 
     /**
