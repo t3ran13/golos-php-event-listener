@@ -164,7 +164,7 @@ abstract class ProcessAbstract implements ProcessInterface
             } catch (\Exception $e) {
 
                 $msg = '"' . $e->getMessage() . '" ' . $e->getTraceAsString();
-                echo PHP_EOL . ' --- process with pid=' . $process->getPid() . ' got exception ' . $msg;
+                echo PHP_EOL . ' --- process with id=' . $process->getId() . ' got exception ' . $msg;
                 $process->errorInsertToLog(date('Y-m-d H:i:s') . '   ' . $msg);
 
             } finally {
