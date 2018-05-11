@@ -10,7 +10,7 @@ use GolosPhpEventListener\app\db\DBManagerInterface;
 use GrapheneNodeClient\Commands\CommandQueryData;
 use GrapheneNodeClient\Commands\Single\GetDynamicGlobalPropertiesCommand;
 use GrapheneNodeClient\Commands\Single\GetOpsInBlock;
-use GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector;
+use GrapheneNodeClient\Connectors\ConnectorInterface;
 
 class BlockchainExplorerProcess extends ProcessAbstract
 {
@@ -18,18 +18,26 @@ class BlockchainExplorerProcess extends ProcessAbstract
     protected $priority = 10;
     protected $isRunning = true;
     protected $dbManagerClassName;
+    protected $connectorClassName;
+    /**
+     * @var null|ConnectorInterface
+     */
+    protected $connector;
 
 
     /**
      * MainProcess constructor.
      *
      * @param string $dbManagerClassName
+     * @param string $connectorClassName
      */
-    public function __construct($dbManagerClassName = null)
+    public function __construct($dbManagerClassName = null, $connectorClassName = null)
     {
         parent::__construct();
         $this->dbManagerClassName = $dbManagerClassName === null
             ? 'GolosPhpEventListener\app\db\RedisManager' : $dbManagerClassName;
+        $this->connectorClassName = $connectorClassName === null
+            ? 'GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector' : $connectorClassName;
     }
 
     /**
@@ -40,6 +48,22 @@ class BlockchainExplorerProcess extends ProcessAbstract
     public function init()
     {
         $this->setDBManager(new $this->dbManagerClassName());
+    }
+
+    /**
+     * @return ConnectorInterface|null
+     */
+    public function getConnector()
+    {
+        return $this->connector;
+    }
+
+    /**
+     *
+     */
+    public function initConnector()
+    {
+        $this->connector = new $this->connectorClassName();
     }
 
     public function initSignalsHandlers()
@@ -69,13 +93,19 @@ class BlockchainExplorerProcess extends ProcessAbstract
 //            . print_r($this->getDBManager()->processInfoById($this->getId()), true);
 
         $this->initLastBlock();
+        $this->initConnector();
         $currentBlockNumber = $this->getCurrentBlockNumber();
 
-        while ($this->isRunning && $this->lastBlock + 1 <= $currentBlockNumber) {
+        while ($this->isRunning) {
+            //if last block = current, then wait 1 second, update curretn block and try again
+            if ($this->lastBlock + 1 <= $currentBlockNumber) {
+                sleep(1);
+                $currentBlockNumber = $this->getCurrentBlockNumber();
+                continue;
+            }
 
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
-            $info = $this->getDBManager()->processInfoById($this->getId());
             echo PHP_EOL . ' BlockchainExplorer is running, scan block '
                 . print_r($this->lastBlock + 1, true);
 
@@ -91,7 +121,6 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
 
             pcntl_signal_dispatch();
-//            sleep(3);
         }
     }
 
@@ -100,13 +129,11 @@ class BlockchainExplorerProcess extends ProcessAbstract
         try {
             $listeners = $this->getDBManager()->listenersListGet();
 
-            $connector = new GolosWSConnector();
-
             $commandQuery = new CommandQueryData();
             $commandQuery->setParamByKey('0', $blockNumber);//blockNum
             $commandQuery->setParamByKey('1', false);//onlyVirtual
 
-            $command = new GetOpsInBlock($connector);
+            $command = new GetOpsInBlock($this->getConnector());
             $data = $command->execute(
                 $commandQuery,
                 'result'
@@ -224,10 +251,8 @@ class BlockchainExplorerProcess extends ProcessAbstract
     public function getCurrentBlockNumber()
     {
         try {
-            $connector = new GolosWSConnector();
-
             $commandQuery = new CommandQueryData();
-            $command = new GetDynamicGlobalPropertiesCommand($connector);
+            $command = new GetDynamicGlobalPropertiesCommand($this->getConnector());
             $data = $command->execute(
                 $commandQuery,
                 'result'
