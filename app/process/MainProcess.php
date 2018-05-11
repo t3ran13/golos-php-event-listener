@@ -187,10 +187,10 @@ class MainProcess extends ProcessAbstract
                     $isRestartNeeded = false;
                     if (pcntl_wifexited($pidStatus)) {
                         $code = pcntl_wexitstatus($pidStatus);
-                        print " and returned exit code: $code\n";
+//                        print " and returned exit code: $code\n";
                     } else {
                         $isRestartNeeded = true;
-                        print " and was unnaturally terminated and will be restarted \n";
+//                        print " and was unnaturally terminated and will be restarted \n";
                     }
 
                     //if process need restart
