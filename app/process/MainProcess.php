@@ -125,6 +125,7 @@ class MainProcess extends ProcessAbstract
 
     public function start()
     {
+        echo PHP_EOL . ' MainProcess is started';
         pcntl_setpriority($this->priority, getmypid());
 
 //        echo PHP_EOL . get_class($this) . ' is started';
@@ -132,7 +133,7 @@ class MainProcess extends ProcessAbstract
 //        $dbClass = get_class($this->getDBManager());
 
         while ($this->isRunning) {
-            echo PHP_EOL . ' MainProcess is running';
+//            echo PHP_EOL . ' MainProcess is running';
 
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
@@ -166,9 +167,9 @@ class MainProcess extends ProcessAbstract
                     $pid = $this->forkProcess($process);
                     $process->setPid($pid);
 
-                    echo PHP_EOL . ' --- PROCESS ID=' . $process->getId() . ' is started with pid=' . $pid;
+                    //echo PHP_EOL . ' --- PROCESS ID=' . $process->getId() . ' is started with pid=' . $pid;
                 } elseif ($process->isStopNeeded()) {
-                    echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
+                    //echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
                     posix_kill($process->getPid(), SIGTERM);
                 }
             }
@@ -181,7 +182,7 @@ class MainProcess extends ProcessAbstract
             while ($pid > 0) {
                 $pid = pcntl_waitpid(-1, $pidStatus, WNOHANG);
                 if ($pid > 0) {
-                    echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $pidStatus;
+                    //echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $pidStatus;
 
                     $isRestartNeeded = false;
                     if (pcntl_wifexited($pidStatus)) {
@@ -204,7 +205,7 @@ class MainProcess extends ProcessAbstract
                         }
                         $process->setStatus(ProcessInterface::STATUS_RUN);
 
-                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
+                        //echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
                     }
                 }
             }

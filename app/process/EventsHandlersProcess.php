@@ -82,10 +82,10 @@ class EventsHandlersProcess extends ProcessAbstract
     {
         pcntl_setpriority($this->priority, getmypid());
 
-        echo PHP_EOL . get_class($this) . ' is started';
+//        echo PHP_EOL . get_class($this) . ' is started';
 
         while ($this->isRunning) {
-            echo PHP_EOL . 'EventsHandlersProcess is running';
+//            echo PHP_EOL . 'EventsHandlersProcess is running';
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
 
@@ -107,7 +107,7 @@ class EventsHandlersProcess extends ProcessAbstract
                     $processObj->init();
                     $this->processesList[] = $processObj;
 
-                    echo PHP_EOL . ' --- ' . get_class($processObj) . ' is init';
+//                    echo PHP_EOL . ' --- ' . get_class($processObj) . ' is init';
                 }
             }
 
@@ -117,12 +117,12 @@ class EventsHandlersProcess extends ProcessAbstract
 
                     if ($pid > 0) {
                         $process->setPid($pid);
-                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' is started with pid=' . $pid;
+//                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' is started with pid=' . $pid;
                     } else {
-                        echo PHP_EOL . date('Y.m.d H:i:s') . ' CANT RUN LISTENER ID=' . $process->getId();
+//                        echo PHP_EOL . date('Y.m.d H:i:s') . ' CANT RUN LISTENER ID=' . $process->getId();
                     }
                 } elseif ($process->isStopNeeded()) {
-                    echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
+//                    echo PHP_EOL . ' --- to process with pid ' . $process->getPid() . ' was sent stop signal=' . SIGTERM;
                     posix_kill($process->getPid(), SIGTERM);
                 }
             }
@@ -138,16 +138,16 @@ class EventsHandlersProcess extends ProcessAbstract
             while ($pid > 0) {
                 $pid = pcntl_waitpid(-1, $pidStatus, WNOHANG);
                 if ($pid > 0) {
-                    echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $pidStatus;
+//                    echo PHP_EOL . date('Y.m.d H:i:s') . ' process with pid=' . $this->getPid() . ' from child with pid=' . $pid . ' got status=' . $pidStatus;
 
                     $isRestartNeeded = false;
                     if(pcntl_wifexited($pidStatus)) {
                         $code = pcntl_wexitstatus($pidStatus);
-                        print " and returned exit code: $code\n";
+//                        print " and returned exit code: $code\n";
                     }
                     else {
                         $isRestartNeeded = true;
-                        print " and was unnaturally terminated and will be restarted \n";
+//                        print " and was unnaturally terminated and will be restarted \n";
                     }
 
                     //if process need restart
@@ -162,7 +162,7 @@ class EventsHandlersProcess extends ProcessAbstract
                         }
                         $process->setStatus(ProcessInterface::STATUS_RUN);
 
-                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
+//                        echo PHP_EOL . date('Y.m.d H:i:s') . ' LISTENER ID=' . $process->getId() . ' was updated to status=' . ProcessInterface::STATUS_RUN;
                     }
                 }
             }
@@ -175,7 +175,7 @@ class EventsHandlersProcess extends ProcessAbstract
         // get listeners list
         $this->setStatus(ProcessInterface::STATUS_STOPPED);
 
-        echo PHP_EOL . ' -- end task of ' . get_class($this);
+//        echo PHP_EOL . ' -- end task of ' . get_class($this);
     }
 
     /**

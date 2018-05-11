@@ -106,7 +106,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
             $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
 
-            echo PHP_EOL . ' BlockchainExplorer is running, scan block '
+            echo PHP_EOL . ' scan block '
                 . print_r($this->lastBlock + 1, true);
 
 
