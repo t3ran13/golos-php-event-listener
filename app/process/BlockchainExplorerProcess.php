@@ -161,7 +161,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
             $totalEvents = count($saveForHandle);
             if ($totalEvents > 0) {
-                echo PHP_EOL . date('Y.m.d H:i:s') . " BlockchainExplorer catch {$totalEvents} in block {$blockNumber}";
+                echo PHP_EOL . date('Y.m.d H:i:s') . " BlockchainExplorer catch {$totalEvents} events in block {$blockNumber}";
             }
 
 
