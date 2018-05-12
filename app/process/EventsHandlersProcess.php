@@ -86,7 +86,7 @@ class EventsHandlersProcess extends ProcessAbstract
 
         while ($this->isRunning) {
 //            echo PHP_EOL . 'EventsHandlersProcess is running';
-            $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
+            $this->setLastUpdateDatetime(date('Y-m-d H:i:s'));
 
 
             $listenersFromDB = $this->getDBManager()->listenersListGet();

@@ -91,7 +91,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
 //        pcntl_setpriority($this->priority);
 
         $this->initLastBlock();
-        echo PHP_EOL . date('Y.m.d H:i:s') . ' BlockchainExplorer is started from block ' . $this->lastBlock;
+        echo PHP_EOL . date('Y-m-d H:i:s') . ' BlockchainExplorer is started from block ' . $this->lastBlock;
 
         $this->initConnector();
         $currentBlockNumber = $this->getCurrentBlockNumber();
@@ -104,7 +104,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
                 continue;
             }
 
-            $this->setLastUpdateDatetime(date('Y.m.d H:i:s'));
+            $this->setLastUpdateDatetime(date('Y-m-d H:i:s'));
 
 //            echo PHP_EOL . ' scan block '
 //                . print_r($this->lastBlock + 1, true);
@@ -161,7 +161,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
             $totalEvents = count($saveForHandle);
             if ($totalEvents > 0) {
-                echo PHP_EOL . date('Y.m.d H:i:s') . " BlockchainExplorer catch {$totalEvents} events in block {$blockNumber}";
+                echo PHP_EOL . date('Y-m-d H:i:s') . " BlockchainExplorer catch {$totalEvents} events in block {$blockNumber}";
             }
 
 
