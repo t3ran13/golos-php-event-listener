@@ -345,7 +345,8 @@ if (
     echo PHP_EOL . '------ new MainProcess is started ------';
 
     $dbClassName = get_class(New RedisManager());
-    $blockchainExplorerProcess = new BlockchainExplorerProcess($dbClassName);
+    $connectorClassName = 'GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector';
+    $blockchainExplorerProcess = new BlockchainExplorerProcess($dbClassName, $connectorClassName);
     $blockchainExplorerProcess->setLastBlock(16238400);
     
     $mainProcess->processesList = [
