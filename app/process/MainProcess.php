@@ -145,7 +145,7 @@ class MainProcess extends ProcessAbstract
                 $processObj = null;
 
                 foreach ($this->processesList as $process) {
-                    if ($process->getId() === $processId) {
+                    if ((string)$process->getId() == (string)$processId) {
                         $processObj = $process;
                         break;
                     }
