@@ -135,13 +135,14 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
             $command = new GetOpsInBlock($this->getConnector());
             $data = $command->execute(
-                $commandQuery,
-                'result'
+                $commandQuery
             );
-
+            if (!isset($data['result'])) {
+                throw new \Exception(' - got wrong answer for block ' . $blockNumber);
+            }
             $saveForHandle = [];
-            if (is_array($data)) {
-                foreach ($data as $trx) {
+            if (is_array($data['result'])) {
+                foreach ($data['result'] as $trx) {
                     foreach ($listeners as $listenerId => $listener) {
                         if ($this->isTrxSatisfiesConditions($trx, $listener['conditions'])) {
                             $saveForHandle[$listenerId][] = $trx;
