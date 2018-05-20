@@ -382,22 +382,22 @@ Example of the app base on golos-php-event-listener you can see here https://git
 
 DB structure:
 - DB0
-    - app:processes:{id}:last_update_datetime
-    - app:processes:{id}:status
-    - app:processes:{id}:mode
-    - app:processes:{id}:pid
-    - app:processes:{id}:handler
-    - app:processes:{id}:data:last_block
+    - {keyPrefix}:processes:{id}:last_update_datetime
+    - {keyPrefix}:processes:{id}:status
+    - {keyPrefix}:processes:{id}:mode
+    - {keyPrefix}:processes:{id}:pid
+    - {keyPrefix}:processes:{id}:handler
+    - {keyPrefix}:processes:{id}:data:last_block
     
-    - app:listeners:{id}:last_update_datetime
-    - app:listeners:{id}:status
-    - app:listeners:{id}:mode
-    - app:listeners:{id}:pid
-    - app:listeners:{id}:handler
-    - app:listeners:{id}:data:last_block
-    - app:listeners:{id}:conditions:{n}:key
-    - app:listeners:{id}:conditions:{n}:value
+    - {keyPrefix}:listeners:{id}:last_update_datetime
+    - {keyPrefix}:listeners:{id}:status
+    - {keyPrefix}:listeners:{id}:mode
+    - {keyPrefix}:listeners:{id}:pid
+    - {keyPrefix}:listeners:{id}:handler
+    - {keyPrefix}:listeners:{id}:data:last_block
+    - {keyPrefix}:listeners:{id}:conditions:{n}:key
+    - {keyPrefix}:listeners:{id}:conditions:{n}:value
     
-    - app:events:{listener_id}:{block_n}:{trx_n_in_block}
+    - {keyPrefix}:events:{listener_id}:{block_n}:{trx_n_in_block}
     
     

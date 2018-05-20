@@ -9,6 +9,7 @@ use GolosPhpEventListener\app\process\ProcessInterface;
 
 class RedisManager implements DBManagerInterface
 {
+    protected $keyPrefix = 'GEL';
     protected $connect;
 
     public function __construct()
@@ -58,7 +59,7 @@ class RedisManager implements DBManagerInterface
      */
     public function listenerAdd($id, $options)
     {
-        $prefix = "app:listeners:{$id}";
+        $prefix = "{$this->keyPrefix}:listeners:{$id}";
         $set = [];
         foreach ($options as $key => $val) {
             $set["{$prefix}:{$key}"] = $val;
@@ -74,7 +75,7 @@ class RedisManager implements DBManagerInterface
      */
     public function listenersListClear()
     {
-        $keys = $this->connect->keys('app:listeners:*');
+        $keys = $this->connect->keys("{$this->keyPrefix}:listeners:*");
         if (!empty($keys)) {
             return $this->connect->del($keys);
         }
@@ -88,12 +89,12 @@ class RedisManager implements DBManagerInterface
      */
     public function listenersListGet()
     {
-        $keys = $this->connect->keys("app:listeners:*");
+        $keys = $this->connect->keys("{$this->keyPrefix}:listeners:*");
         $values = $this->connect->mGet($keys);
 
         $data = [];
         foreach ($keys as $n => $keyFull) {
-            $shortKey = str_replace("app:listeners:", '', $keyFull);
+            $shortKey = str_replace("{$this->keyPrefix}:listeners:", '', $keyFull);
             $data = $this->setArrayElementByKey(
                 $data,
                 $shortKey,
@@ -117,7 +118,7 @@ class RedisManager implements DBManagerInterface
         $set = [];
 
         foreach ($options as $key => $val) {
-            $set["app:listeners:{$id}:{$key}"] = $val;
+            $set["{$this->keyPrefix}:listeners:{$id}:{$key}"] = $val;
         }
 
         return $this->connect->mset($set);
@@ -134,16 +135,16 @@ class RedisManager implements DBManagerInterface
     public function listenerGetById($id, $field = null)
     {
         if ($field === null) {
-            $keys = $this->connect->keys("app:listeners:{$id}:*");
+            $keys = $this->connect->keys("{$this->keyPrefix}:listeners:{$id}:*");
             $values = $this->connect->mGet($keys);
 
             $data = [];
             foreach ($keys as $n => $keyFull) {
-                $shortKey = str_replace("app:listeners:{$id}:", '', $keyFull);
+                $shortKey = str_replace("{$this->keyPrefix}:listeners:{$id}:", '', $keyFull);
                 $data = $this->setArrayElementByKey($data, $shortKey, $values[$n]);
             }
         } else {
-            $data = $this->connect->get("app:listeners:{$id}:" . $field);
+            $data = $this->connect->get("{$this->keyPrefix}:listeners:{$id}:" . $field);
         }
 
         return $data;
@@ -159,7 +160,7 @@ class RedisManager implements DBManagerInterface
     {
         $set = [];
         foreach ($options as $key => $val) {
-            $set["app:processes:{$id}:{$key}"] = $val;
+            $set["{$this->keyPrefix}:processes:{$id}:{$key}"] = $val;
         }
 
         return $this->connect->mset($set);
@@ -178,7 +179,7 @@ class RedisManager implements DBManagerInterface
         $set = [];
 
         foreach ($options as $key => $val) {
-            $set["app:processes:{$id}:{$key}"] = $val;
+            $set["{$this->keyPrefix}:processes:{$id}:{$key}"] = $val;
         }
 
         return $this->connect->mset($set);
@@ -195,16 +196,16 @@ class RedisManager implements DBManagerInterface
     public function processInfoById($id, $field = null)
     {
         if ($field === null) {
-            $keys = $this->connect->keys("app:processes:{$id}:*");
+            $keys = $this->connect->keys("{$this->keyPrefix}:processes:{$id}:*");
             $values = $this->connect->mGet($keys);
 
             $data = [];
             foreach ($keys as $n => $keyFull) {
-                $shortKey = str_replace("app:processes:{$id}:", '', $keyFull);
+                $shortKey = str_replace("{$this->keyPrefix}:processes:{$id}:", '', $keyFull);
                 $data = $this->setArrayElementByKey($data, $shortKey, $values[$n]);
             }
         } else {
-            $data = $this->connect->get("app:processes:{$id}:" . $field);
+            $data = $this->connect->get("{$this->keyPrefix}:processes:{$id}:" . $field);
         }
 
         return $data;
@@ -217,7 +218,7 @@ class RedisManager implements DBManagerInterface
      */
     public function processesListClear()
     {
-        $keys = $this->connect->keys('app:processes:*');
+        $keys = $this->connect->keys("{$this->keyPrefix}:processes:*");
         if (!empty($keys)) {
             return $this->connect->del($keys);
         }
@@ -231,12 +232,12 @@ class RedisManager implements DBManagerInterface
      */
     public function processesListGet()
     {
-        $keys = $this->connect->keys("app:processes:*");
+        $keys = $this->connect->keys("{$this->keyPrefix}:processes:*");
         $values = $this->connect->mGet($keys);
 
         $data = [];
         foreach ($keys as $n => $keyFull) {
-            $shortKey = str_replace("app:processes:", '', $keyFull);
+            $shortKey = str_replace("{$this->keyPrefix}:processes:", '', $keyFull);
             $data = $this->setArrayElementByKey(
                 $data,
                 $shortKey,
@@ -315,7 +316,7 @@ class RedisManager implements DBManagerInterface
      */
     public function eventsListClear()
     {
-        $keys = $this->connect->keys('app:events:*');
+        $keys = $this->connect->keys("{$this->keyPrefix}:events:*");
         if (!empty($keys)) {
             return $this->connect->del($keys);
         }
@@ -332,7 +333,7 @@ class RedisManager implements DBManagerInterface
     {
         $status = $this->connect->mset(
             [
-                "app:events:{$listenerId}:{$trx['block']}:{$trx['trx_in_block']}" => json_encode($trx, JSON_UNESCAPED_UNICODE)
+                "{$this->keyPrefix}:events:{$listenerId}:{$trx['block']}:{$trx['trx_in_block']}" => json_encode($trx, JSON_UNESCAPED_UNICODE)
             ]
         );
 
@@ -348,7 +349,7 @@ class RedisManager implements DBManagerInterface
      */
     public function eventDelete($listenerId, $blockN, $trxInBlock)
     {
-        return $this->connect->del("app:events:{$listenerId}:{$blockN}:{$trxInBlock}");
+        return $this->connect->del("{$this->keyPrefix}:events:{$listenerId}:{$blockN}:{$trxInBlock}");
     }
 
     /**
@@ -358,7 +359,7 @@ class RedisManager implements DBManagerInterface
      */
     public function eventsCountByListenerId($listenerId)
     {
-        $keys = $this->connect->keys("app:events:{$listenerId}:*");
+        $keys = $this->connect->keys("{$this->keyPrefix}:events:{$listenerId}:*");
 
         return count($keys);
     }
@@ -370,7 +371,7 @@ class RedisManager implements DBManagerInterface
      */
     public function eventsListByListenerId($listenerId)
     {
-        $keys = $this->connect->keys("app:events:{$listenerId}:*");
+        $keys = $this->connect->keys("{$this->keyPrefix}:events:{$listenerId}:*");
         if (count($keys) === 0) {
             return [];
         }
@@ -389,7 +390,7 @@ class RedisManager implements DBManagerInterface
      */
     public function listenerErrorInsertToLog($id, $error)
     {
-        return $this->connect->rPush("app:listeners:{$id}:errors_list", $error);
+        return $this->connect->rPush("{$this->keyPrefix}:listeners:{$id}:errors_list", $error);
     }
 
     /**
@@ -402,6 +403,6 @@ class RedisManager implements DBManagerInterface
      */
     public function processErrorInsertToLog($id, $error)
     {
-        return $this->connect->rPush("app:processes:{$id}:errors_list", $error);
+        return $this->connect->rPush("{$this->keyPrefix}:processes:{$id}:errors_list", $error);
     }
 }
