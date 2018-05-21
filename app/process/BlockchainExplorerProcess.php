@@ -14,7 +14,7 @@ use GrapheneNodeClient\Connectors\ConnectorInterface;
 
 class BlockchainExplorerProcess extends ProcessAbstract
 {
-    protected $lastBlock = 14745442;
+    protected $lastBlock = 1;
     protected $priority = 10;
     protected $isRunning = true;
     protected $dbManagerClassName;
