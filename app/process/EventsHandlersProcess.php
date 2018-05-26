@@ -183,9 +183,9 @@ class EventsHandlersProcess extends ProcessAbstract
      *
      * @return void
      */
-    public function clearParentResources()
+    public function clearLegacyResourcesInChild()
     {
-//        unset($this->processesList);
-//        unset($this->dbManager);
+        unset($this->processesList);
+        unset($this->dbManager);
     }
 }

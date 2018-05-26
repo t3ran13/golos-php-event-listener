@@ -225,11 +225,11 @@ class MainProcess extends ProcessAbstract
      *
      * @return void
      */
-    public function clearParentResources()
+    public function clearLegacyResourcesInChild()
     {
-//        unset($this->appConfig);
-//        unset($this->processesList);
-//        unset($this->dbManager);
+        unset($this->appConfig);
+        unset($this->processesList);
+        unset($this->dbManager);
     }
 
     /**

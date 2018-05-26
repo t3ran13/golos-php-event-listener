@@ -155,7 +155,7 @@ abstract class ProcessAbstract implements ProcessInterface
         $pid = pcntl_fork();
         if ($pid === 0) {//child process start
             try {
-//                $this->clearParentResources();
+                $this->clearLegacyResourcesInChild();
                 $process->init();//all resourses have to be init again
                 $process->initSignalsHandlers();
                 $process->setStatus(ProcessInterface::STATUS_RUNNING);

@@ -128,5 +128,5 @@ interface ProcessInterface
      *
      * @return void
      */
-    public function clearParentResources();
+    public function clearLegacyResourcesInChild();
 }
