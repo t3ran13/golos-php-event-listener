@@ -161,7 +161,7 @@ abstract class ProcessAbstract implements ProcessInterface
                 $process->setStatus(ProcessInterface::STATUS_RUNNING);
                 $process->start();
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
 
                 $msg = '"' . $e->getMessage() . '" ' . $e->getTraceAsString();
                 echo PHP_EOL . date('Y-m-d H:i:s') . ' process with id=' . $process->getId() . ' got exception ' . $msg. PHP_EOL;
