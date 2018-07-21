@@ -261,11 +261,13 @@ class BlockchainExplorerProcess extends ProcessAbstract
             $commandQuery = new CommandQueryData();
             $command = new GetDynamicGlobalPropertiesCommand($this->getConnector());
             $data = $command->execute(
-                $commandQuery,
-                'result'
+                $commandQuery
             );
+            if (!isset($data['result'])) {
+                throw new \Exception(' - got wrong answer from API for process ' . $this->getId());
+            }
 
-            $currentBlockNumber = $data['head_block_number'];
+            $currentBlockNumber = $data['result']['head_block_number'];
 
         } catch (\Exception $e) {
             throw $e;
