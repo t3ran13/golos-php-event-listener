@@ -12,7 +12,7 @@
     ],
     "require": {
         "php": "^7.0",
-        "t3ran13/php-graphene-node-client": "^4",
+        "t3ran13/php-graphene-node-client": "^5.0.0",
         "predis/predis": "1.1.1"
     },
     "autoload": {
