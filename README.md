@@ -14,13 +14,13 @@ For working you app you need
 - start script for cron
 
 #### Database manager
-Lib has ready for using RedisManager (DB structure see below), which you can to extend and add new necessary functions for your events handlers, as below
+Lib use ready for using RedisManager (from t3ran13/php-process-manager composer package, DB structure see in lib), which you can to extend and add new necessary functions for your events handlers, as below
 
 ```php
 <?php
 namespace MyApp;
 
-class RedisManager extends \GolosPhpEventListener\app\db\RedisManager
+class RedisManager extends \ProcessManager\db\RedisManager
 {
     public function connect()
     {
@@ -378,26 +378,6 @@ Add this script to cron.
 Example of the app base on golos-php-event-listener you can see here https://github.com/t3ran13/golos-rating-auto-reward
 
 
-## DB RedisManager
 
-DB structure:
-- DB0
-    - {keyPrefix}:processes:{id}:last_update_datetime
-    - {keyPrefix}:processes:{id}:status
-    - {keyPrefix}:processes:{id}:mode
-    - {keyPrefix}:processes:{id}:pid
-    - {keyPrefix}:processes:{id}:handler
-    - {keyPrefix}:processes:{id}:data:last_block
-    
-    - {keyPrefix}:listeners:{id}:last_update_datetime
-    - {keyPrefix}:listeners:{id}:status
-    - {keyPrefix}:listeners:{id}:mode
-    - {keyPrefix}:listeners:{id}:pid
-    - {keyPrefix}:listeners:{id}:handler
-    - {keyPrefix}:listeners:{id}:data:last_block
-    - {keyPrefix}:listeners:{id}:conditions:{n}:key
-    - {keyPrefix}:listeners:{id}:conditions:{n}:value
-    
-    - {keyPrefix}:events:{listener_id}:{block_n}:{trx_n_in_block}
     
     

@@ -5,7 +5,7 @@ namespace GolosPhpEventListener\app\process;
 
 
 use GolosPhpEventListener\app\AppConfig;
-use GolosPhpEventListener\app\db\RedisManager;
+use ProcessManager\db\RedisManager;
 use GolosPhpEventListener\app\handlers\HandlerInterface;
 
 class EventsHandlersProcess extends ProcessAbstract
@@ -32,7 +32,7 @@ class EventsHandlersProcess extends ProcessAbstract
     {
         parent::__construct();
         $this->dbManagerClassName = $dbManagerClassName === null
-            ? 'GolosPhpEventListener\app\db\RedisManager' : $dbManagerClassName;
+            ? 'ProcessManager\db\RedisManager' : $dbManagerClassName;
     }
 
     /**
@@ -89,7 +89,7 @@ class EventsHandlersProcess extends ProcessAbstract
             $this->setLastUpdateDatetime(date('Y-m-d H:i:s'));
 
 
-            $listenersFromDB = $this->getDBManager()->listenersListGet();
+            $listenersFromDB = $this->getDBManager()->listenersListGet();//TODO FIXME
 
             foreach ($listenersFromDB as $listenerId => $listenerInfo) {
                 /** @var ProcessInterface|HandlerInterface|null $processObj */

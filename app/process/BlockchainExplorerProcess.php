@@ -35,7 +35,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
     {
         parent::__construct();
         $this->dbManagerClassName = $dbManagerClassName === null
-            ? 'GolosPhpEventListener\app\db\RedisManager' : $dbManagerClassName;
+            ? 'ProcessManager\db\RedisManager' : $dbManagerClassName;
         $this->connectorClassName = $connectorClassName === null
             ? 'GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector' : $connectorClassName;
     }
@@ -113,7 +113,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
             $scanBlock = $this->lastBlock + 1;
             $this->runBlockScanner($scanBlock);
 
-            $this->getDBManager()->processUpdateById(
+            $this->getDBManager()->updProcessStateById(
                 $this->getId(),
                 ['data:last_block' => $scanBlock]
             );
@@ -138,7 +138,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
             if (!isset($data['result'])) {
                 throw new \Exception(' - got wrong answer for block ' . $blockNumber);
             }
-            $listeners = $this->getDBManager()->listenersListGet();
+            $listeners = $this->getDBManager()->listenersListGet();//TODO FIXME
             $saveForHandle = [];
             if (is_array($data['result'])) {
                 foreach ($data['result'] as $trx) {
@@ -154,7 +154,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
             foreach ($saveForHandle as $listenerId => $trxs) {
                 foreach ($trxs as $trx) {
-                    $this->getDBManager()->eventAdd($listenerId, $trx);
+                    $this->getDBManager()->eventAdd($listenerId, $trx);//TODO FIXME
                 }
             }
 
@@ -165,9 +165,6 @@ class BlockchainExplorerProcess extends ProcessAbstract
             }
 
 
-//            echo '<pre>' . print_r($saveForHandle, true) . '<pre>'; die; //FIXME delete it
-
-
         } catch (\Exception $e) {
             throw $e;
         }
@@ -176,12 +173,12 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
     public function initLastBlock()
     {
-        $info = $this->getDBManager()->processInfoById($this->getId());
+        $info = $this->getDBManager()->getProcessStateById($this->getId());
         if (
             !isset($info['data']['last_block'])
             || (integer)$info['data']['last_block'] < $this->lastBlock
         ) {
-            $this->getDBManager()->processUpdateById(
+            $this->getDBManager()->updProcessStateById(
                 $this->getId(),
                 ['data:last_block' => $this->lastBlock]
             );
