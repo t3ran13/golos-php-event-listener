@@ -13,7 +13,8 @@
     "require": {
         "php": "^7.0",
         "t3ran13/php-graphene-node-client": "^5.0.0",
-        "predis/predis": "1.1.1"
+        "predis/predis": "1.1.1",
+        "t3ran13/php-process-manager": "^0.1.0"
     },
     "autoload": {
         "psr-4": { "GolosPhpEventListener\\": "" }
