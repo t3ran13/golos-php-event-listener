@@ -127,8 +127,6 @@ class BlockchainExplorerProcess extends ProcessAbstract
     public function runBlockScanner($blockNumber)
     {
         try {
-            $listeners = $this->getDBManager()->listenersListGet();
-
             $commandQuery = new CommandQueryData();
             $commandQuery->setParamByKey('0', $blockNumber);//blockNum
             $commandQuery->setParamByKey('1', false);//onlyVirtual
@@ -140,6 +138,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
             if (!isset($data['result'])) {
                 throw new \Exception(' - got wrong answer for block ' . $blockNumber);
             }
+            $listeners = $this->getDBManager()->listenersListGet();
             $saveForHandle = [];
             if (is_array($data['result'])) {
                 foreach ($data['result'] as $trx) {
