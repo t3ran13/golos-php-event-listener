@@ -26,7 +26,7 @@ abstract class EventHandlerAbstract extends ProcessAbstract implements EventHand
      */
     public function addCondition(string $trxKey, $val)
     {
-        $conditions[$trxKey] = $val;
+        $this->conditions[$trxKey] = $val;
 
         return $this;
     }
@@ -41,8 +41,8 @@ abstract class EventHandlerAbstract extends ProcessAbstract implements EventHand
     public function isTrxSatisfiesConditions($trx): bool
     {
         $answer = true;
-        foreach ($this->conditions as $condition) {
-            if ($condition['value'] !== $this->getArrayElementByKey($trx, $condition['key'])) {
+        foreach ($this->conditions as $cKey => $cVal) {
+            if ($cVal !== $this->getArrayElementByKey($trx, $cKey)) {
                 $answer = false;
                 break;
             }
