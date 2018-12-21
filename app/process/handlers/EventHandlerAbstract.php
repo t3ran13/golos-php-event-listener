@@ -110,6 +110,7 @@ abstract class EventHandlerAbstract extends ProcessAbstract implements EventHand
         foreach ($events as $key => $event) {
             $events[$key] = json_decode($event, true);
         }
+        ksort($events);
 
         return $events;
     }
