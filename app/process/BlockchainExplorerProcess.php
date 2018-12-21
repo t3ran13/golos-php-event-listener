@@ -112,7 +112,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
                 continue;
             }
 
-            if (($this->lastBlock % 100) === 0) {
+            if (($this->lastBlock % 1000) === 0) {
                 echo PHP_EOL . date('Y-m-d H:i:s') . ' BlockchainExplorer scanned block '
                     . print_r($this->lastBlock, true);
             }
@@ -162,7 +162,7 @@ class BlockchainExplorerProcess extends ProcessAbstract
             }
 
             if ($totalEvents > 0) {
-                echo PHP_EOL . date('Y-m-d H:i:s') . " {$this->getProcessName()} catch {$totalEvents} events in block {$blockNumber}";
+//                echo PHP_EOL . date('Y-m-d H:i:s') . " {$this->getProcessName()} catch {$totalEvents} events in block {$blockNumber}";
             }
 
 
