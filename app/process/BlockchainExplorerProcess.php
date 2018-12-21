@@ -1,24 +1,28 @@
 <?php
 
 
-
 namespace GolosPhpEventListener\app\process;
 
 
 
-use GolosPhpEventListener\app\db\DBManagerInterface;
+use GolosPhpEventListener\app\process\handlers\EventHandlerInterface;
 use GrapheneNodeClient\Commands\CommandQueryData;
 use GrapheneNodeClient\Commands\Single\GetDynamicGlobalPropertiesCommand;
 use GrapheneNodeClient\Commands\Single\GetOpsInBlock;
 use GrapheneNodeClient\Connectors\ConnectorInterface;
+use GrapheneNodeClient\Connectors\InitConnector;
+use ProcessManager\db\DBManagerInterface;
+use ProcessManager\process\ProcessAbstract;
+use ProcessManager\process\ProcessInterface;
+
 
 class BlockchainExplorerProcess extends ProcessAbstract
 {
-    protected $lastBlock = 1;
-    protected $priority = 10;
-    protected $isRunning = true;
-    protected $dbManagerClassName;
-    protected $connectorClassName;
+    protected $lastBlock    = 1;
+    private   $isStopSignal = false;
+    private   $platform;
+    /** @var EventHandlerInterface[]|ProcessInterface[]  */
+    private   $events = [];
     /**
      * @var null|ConnectorInterface
      */
@@ -28,26 +32,13 @@ class BlockchainExplorerProcess extends ProcessAbstract
     /**
      * MainProcess constructor.
      *
-     * @param string $dbManagerClassName
-     * @param string $connectorClassName
+     * @param DBManagerInterface $DBManager
+     * @param string             $platform
      */
-    public function __construct($dbManagerClassName = null, $connectorClassName = null)
+    public function __construct(DBManagerInterface $DBManager, $platform)
     {
-        parent::__construct();
-        $this->dbManagerClassName = $dbManagerClassName === null
-            ? 'ProcessManager\db\RedisManager' : $dbManagerClassName;
-        $this->connectorClassName = $connectorClassName === null
-            ? 'GrapheneNodeClient\Connectors\WebSocket\GolosWSConnector' : $connectorClassName;
-    }
-
-    /**
-     * run before process start
-     *
-     * @return void
-     */
-    public function init()
-    {
-        $this->setDBManager(new $this->dbManagerClassName());
+        parent::__construct($DBManager);
+        $this->platform = $platform;
     }
 
     /**
@@ -63,22 +54,39 @@ class BlockchainExplorerProcess extends ProcessAbstract
      */
     public function initConnector()
     {
-        $this->connector = new $this->connectorClassName();
+        $this->connector = InitConnector::getConnector($this->platform);
+    }
+
+    /**
+     * @param EventHandlerInterface $event
+     *
+     * @return $this
+     */
+    public function addEvent(EventHandlerInterface $event)
+    {
+        $this->events[] = $event;
+
+        return $this;
     }
 
     public function initSignalsHandlers()
     {
-        pcntl_signal(SIGTERM, [$this, 'signalsHandlers']);
+        pcntl_signal(SIGTERM, [$this, 'signalsHandlers']); //kill
+        pcntl_signal(SIGINT, [$this, 'signalsHandlers']); //ctrl+c
+        pcntl_signal(SIGHUP, [$this, 'signalsHandlers']); //restart process
     }
 
     public function signalsHandlers($signo, $signinfo)
     {
-        echo PHP_EOL . ' --- process with id=' . $this->getId() . ' got signal=' . $signo . ' and signinfo='
+        echo PHP_EOL . date('Y.m.d H:i:s') . ' process ' . $this->getProcessName() . ' got signal=' . $signo . ' and signinfo='
             . print_r($signinfo, true);
 
         switch ($signo) {
+            case SIGINT:
             case SIGTERM:
-                $this->isRunning = false;
+            case SIGHUP:
+                echo PHP_EOL . date('Y.m.d H:i:s') . ' process \'' . $this->getProcessName() . '\' ARE TERMINATED';
+                $this->isStopSignal = true;
                 break;
             default:
         }
@@ -86,29 +94,28 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
     public function start()
     {
-        pcntl_setpriority($this->priority, getmypid());
-
-//        pcntl_setpriority($this->priority);
-
-        $this->initLastBlock();
-        echo PHP_EOL . date('Y-m-d H:i:s') . ' BlockchainExplorer is started from block ' . $this->lastBlock;
-
         $this->initConnector();
-        $currentBlockNumber = $this->getCurrentBlockNumber();
 
-        while ($this->isRunning) {
+        $this->detectLastBlock();
+        echo PHP_EOL . date('Y-m-d H:i:s') . " {$this->getProcessName()} is started from block "
+            . $this->lastBlock;
+
+        $currentBlockNumber = $this->getCurrentBlockNInChain();
+
+        while (!$this->isStopNeeded() && !$this->isStopSignal) {
+            $this->setLastUpdateDatetime(date('Y-m-d H:i:s'))
+                ->saveState();
             //if last block = current, then wait 1 second, update curretn block and try again
             if ($this->lastBlock + 1 > $currentBlockNumber) {
                 sleep(1);
-                $currentBlockNumber = $this->getCurrentBlockNumber();
+                $currentBlockNumber = $this->getCurrentBlockNInChain();
                 continue;
             }
 
-            $this->setLastUpdateDatetime(date('Y-m-d H:i:s'));
-
-//            echo PHP_EOL . ' scan block '
-//                . print_r($this->lastBlock + 1, true);
-
+            if (($this->lastBlock % 100) === 0) {
+                echo PHP_EOL . date('Y-m-d H:i:s') . ' BlockchainExplorer scanned block '
+                    . print_r($this->lastBlock, true);
+            }
 
             $scanBlock = $this->lastBlock + 1;
             $this->runBlockScanner($scanBlock);
@@ -138,30 +145,24 @@ class BlockchainExplorerProcess extends ProcessAbstract
             if (!isset($data['result'])) {
                 throw new \Exception(' - got wrong answer for block ' . $blockNumber);
             }
-            $listeners = $this->getDBManager()->listenersListGet();//TODO FIXME
-            $saveForHandle = [];
+
+            $totalEvents = 0;
+
+
             if (is_array($data['result'])) {
                 foreach ($data['result'] as $trx) {
-                    foreach ($listeners as $listenerId => $listener) {
-                        if ($this->isTrxSatisfiesConditions($trx, $listener['conditions'])) {
-                            $saveForHandle[$listenerId][] = $trx;
+                    foreach ($this->events as $event) {
+                        if ($event->isTrxSatisfiesConditions($trx)) {
+                            $event->addEvent($trx);
+                            $event->saveState();
+                            $totalEvents++;
                         }
                     }
                 }
             }
 
-            //echo PHP_EOL . ' found events ' . count($saveForHandle);
-
-            foreach ($saveForHandle as $listenerId => $trxs) {
-                foreach ($trxs as $trx) {
-                    $this->getDBManager()->eventAdd($listenerId, $trx);//TODO FIXME
-                }
-            }
-
-
-            $totalEvents = count($saveForHandle);
             if ($totalEvents > 0) {
-                echo PHP_EOL . date('Y-m-d H:i:s') . " BlockchainExplorer catch {$totalEvents} events in block {$blockNumber}";
+                echo PHP_EOL . date('Y-m-d H:i:s') . " {$this->getProcessName()} catch {$totalEvents} events in block {$blockNumber}";
             }
 
 
@@ -171,7 +172,11 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
     }
 
-    public function initLastBlock()
+    /**
+     * get last block from DB state or from $this->lastBlock.
+     * The higher value will be choosen
+     */
+    public function detectLastBlock()
     {
         $info = $this->getDBManager()->getProcessStateById($this->getId());
         if (
@@ -189,69 +194,23 @@ class BlockchainExplorerProcess extends ProcessAbstract
 
     /**
      * @param int $blockN
+     *
+     * @return $this
      */
-    public function setLastBlock($blockN)
+    public function setLastBlock(int $blockN)
     {
         $this->lastBlock = $blockN;
+
+        return $this;
     }
 
-
     /**
-     * get all values or vulue by key
-     *
-     * $getKey example: 'key:123:array' => $_SESSION['key']['123']['array']
-     *
-     * @param null|string $getKey
-     * @param null|mixed  $default
-     * @param array       $array
+     * get current block number from blockchain
      *
      * @return mixed
+     * @throws \Exception
      */
-    public static function getArrayElementByKey($array = [], $getKey = null, $default = null)
-    {
-        $data = $array;
-        if ($getKey) {
-            $keyParts = explode(':', $getKey);
-            foreach ($keyParts as $key) {
-                if (isset($data[$key])) {
-                    $data = $data[$key];
-                } else {
-                    $data = null;
-                    break;
-                }
-            }
-        }
-
-        if ($data === null) {
-            $data = $default;
-        }
-
-        return $data;
-    }
-
-    public function isTrxSatisfiesConditions($trx, $conditions)
-    {
-        $answer = true;
-        foreach ($conditions as $condition) {
-            if ($condition['value'] !== $this->getArrayElementByKey($trx, $condition['key'])) {
-                $answer = false;
-                break;
-            }
-        }
-
-        return $answer;
-    }
-
-    /**
-     * clear parent resourses in child process
-     *
-     * @return void
-     */
-    public function clearLegacyResourcesInChild()
-    {
-    }
-
-    public function getCurrentBlockNumber()
+    public function getCurrentBlockNInChain()
     {
         try {
             $commandQuery = new CommandQueryData();
