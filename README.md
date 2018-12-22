@@ -36,6 +36,7 @@ echo PHP_EOL . '------ start GOLOS EVENT LISTENER ------' . PHP_EOL;
 
 $db = new RedisManager();
 
+//Main process witch starts all other peocesses
 $pm = (new ProcessManager($db))
     ->setProcessName('MainProcess')
     ->setMaxRunningProcesses(3); //it is 4 total with MainProcess, MAX 512 MB RAM by default
@@ -50,11 +51,12 @@ if ($pm->hasState()) {
         ->saveState();
 }
 
+// creating event handler
 $eh1 = (new PostIsCreatedEventHandler($db))
     ->setProcessName('GEV:votesOffafnur:1')
     ->generateIdFromProcessName()
-    ->addCondition('op:1:voter','golosboard')
-    ->addCondition('op:0','vote');
+    ->addCondition('op:1:voter','golosboard') //event trigger 1
+    ->addCondition('op:0','vote'); //event trigger 2
 if ($eh1->hasState()) {
     $eh1->loadState();
 } else {
@@ -66,10 +68,11 @@ if ($eh1->hasState()) {
         ->saveState();
 }
 
+// creating event handler
 $eh2 = (new PostIsCreatedEventHandler($db))
     ->setProcessName('GEV:allComments:2')
     ->generateIdFromProcessName()
-    ->addCondition('op:0','comment');
+    ->addCondition('op:0','comment'); //event trigger 1
 if ($eh2->hasState()) {
     $eh2->loadState();
 } else {
@@ -81,10 +84,11 @@ if ($eh2->hasState()) {
         ->saveState();
 }
 
+// creating event handler
 $eh3 = (new PostIsCreatedEventHandler($db))
     ->setProcessName('GEV:allVotes:3')
     ->generateIdFromProcessName()
-    ->addCondition('op:0','vote');
+    ->addCondition('op:0','vote'); //event trigger 1
 if ($eh3->hasState()) {
     $eh3->loadState();
 } else {
@@ -97,12 +101,12 @@ if ($eh3->hasState()) {
 }
 
 
-
+// Creating blockchain lestener
 $BEP = (new BlockchainExplorerProcess($db,ConnectorInterface::PLATFORM_GOLOS))
     ->setProcessName('GEV:BlockchainExplorer')
     ->setLastBlock(16146488)
     ->addEvent($eh1) //do not forget add eventhandlers to explorer process
-    ->addEvent($eh2)
+    ->addEvent($eh2) //adding event handler for detecting events
     ->addEvent($eh3);
 if ($BEP->hasState()) {
     $BEP->loadState();
@@ -116,7 +120,7 @@ if ($BEP->hasState()) {
 }
 
 $pm->addProcess($BEP)
-    ->addProcess($eh1)
+    ->addProcess($eh1)//add event listener for handling events
     ->addProcess($eh2)
     ->addProcess($eh3);
 $pm->start();
